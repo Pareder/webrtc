@@ -19,16 +19,13 @@ app.use(staticFileMiddleware)
 const server = createServer(app).listen(process.env.PORT || 5000, () => {
 	console.log('Express server listening on port 5000')
 })
-const io = socket(server)
 
+const io = socket(server)
 io.on('connection', socket => {
-	socket.on('call-user', offer => {
-		socket.broadcast.emit('call-made', offer)
+	socket.on('message', data => {
+		socket.broadcast.emit('message', data)
 	})
-	socket.on('make-answer', answer => {
-		socket.broadcast.emit('answer-made', answer)
-	})
-	socket.on('make-ice-candidate', iceCandidate => {
-		socket.broadcast.emit('ice-candidate-made', iceCandidate)
+	socket.on('chat', data => {
+		io.emit('chat', data)
 	})
 })
