@@ -6,7 +6,10 @@ import Chat from './components/Chat'
 import './App.css'
 
 function App() {
-  const socket = useRef(socketIOClient(window.location.origin))
+  const socket = useRef(socketIOClient('/', {
+    transports: ['websocket'],
+    path: '/ws',
+  }))
   const { callService, stream } = useCallService(socket.current)
 
 
