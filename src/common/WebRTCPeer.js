@@ -6,9 +6,7 @@ class WebRTCPeer {
 		this.onIceCandidate = onIceCandidate
 
 		this.peerConnection = new RTCPeerConnection({
-			iceServers: [
-				{ url: 'stun:stun.l.google.com:19302' }
-			],
+			iceServers: process.env.REACT_APP_WEBRTC_ICE_SERVERS ? JSON.parse(process.env.REACT_APP_WEBRTC_ICE_SERVERS) : [],
 		})
 		this._pendingIceCandidates = []
 

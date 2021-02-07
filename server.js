@@ -2,6 +2,7 @@ const express = require('express')
 const path = require('path')
 const { createServer } = require('http')
 const socket = require('socket.io')
+const turn = require('./turn')
 
 const staticFileMiddleware = express.static(path.join(__dirname + '/build'), {
 	maxAge: 604800000,
@@ -29,3 +30,5 @@ io.on('connection', socket => {
 		io.emit('chat', data)
 	})
 })
+
+turn.start()
