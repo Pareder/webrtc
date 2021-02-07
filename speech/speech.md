@@ -218,6 +218,7 @@ Src IP | Src PORT | Dest IP | Dest PORT
 Src IP | Src PORT | Dest IP | Dest PORT
 ---|---|---|---
 12.62.100.200 | 6000 | 192.168.0.200 | 35777
+
 Таблица 11: Роутер подменил адрес приемника
 
 Пакет успешно приходит к узлу p1 и, посмотрев на содержимое пакета, узел узнает о своем внешнем IP адресе, то есть об адресе роутера во внешней сети. Также он знает и порт, который роутер пропускает через NAT.
@@ -233,14 +234,3 @@ TURN сервер – это улучшенный STUN сервер. Отсюд�
 В каких случаях необходим TURN сервер? Почему не хватает STUN сервера? Дело в том, что существует несколько разновидностей NAT. Они одинаково подменяют IP адрес и порт, однако в некоторые из них встроена дополнительная защита от “фальсификации”. Например, в симметричной таблице NAT сохраняются еще 2 параметра - IP и порт удаленного узла. Пакет из внешней сети проходит через NAT во внутреннюю сеть только в том случае, если адрес и порт источника совпадают с записанными в таблице. Поэтому фокус со STUN сервером не удается - таблица NAT хранит адрес и порт STUN сервера и, когда роутер получает пакет от WebRTC собеседника, он его отбрасывает, так как он “фальсифицирован”. Он пришел не от STUN сервера.
 
 Таким образом TURN сервер нужен в том случае, когда оба собеседника находятся за симметричным NAT (каждый за своим).
-
-### WebRTC JavaScript API
-WebRTC is a complex topic where many technologies are involved. However, establishing connections, communication and transmitting data are implemented through a set of JS APIs. The primary APIs include:
-
-- **RTCPeerConnection** –  creates and navigates peer-to-peer connections;
-- **RTCSessionDescription** – describes one end of a connection (or a potential connection) and how it’s configured;
-- **navigator.getUserMedia** – captures audio and video.
-
-### Why Node.js?
-
-To make a remote connection between two or more devices you need a server. In this case, you need a server that handles real-time communication. You know that Node.js is built for real-time scalable applications. To develop two-way connection apps with free data exchange, you would probably use WebSockets that allows opening a communication session between a client and a server. Requests from the client are processed as a loop, more precisely – the event loop, which makes Node.js a good option because it takes a “non-blocking” approach to serve requests and thus, achieves low latency and high throughput along the way.
