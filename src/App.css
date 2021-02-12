@@ -1,38 +1,124 @@
-.App {
-  text-align: center;
+body,
+html {
+  padding: 0;
+  margin: 0;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+.wrapper {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
 }
 
-.App-link {
-  color: #61dafb;
+.login-form {
+  padding: 20px;
+  border: 1px solid #ecebeb;
+  border-radius: 6px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.audio-chat {
+  width: 100%;
+  max-width: 500px;
+  height: 400px;
+  margin: 20px;
+  display: flex;
+  border: 1px solid #ecebeb;
+  border-radius: 6px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.users-list {
+  width: 200px;
+  padding: 20px 0;
+  margin: 0;
+  overflow-y: auto;
+  border-right: 1px solid #ecebeb;
+  list-style: none;
+}
+
+.user {
+  width: 100%;
+  padding: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.current {
+  color: #2ca4d7;
+}
+
+.user-icon {
+  width: 16px;
+  margin-right: 6px;
+  color: gray;
+}
+
+.current .user-icon {
+  filter: invert(74%) sepia(78%) saturate(6670%) hue-rotate(165deg) brightness(99%) contrast(106%);
+}
+
+.chat {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.message {
+  margin-left: 12px;
+  margin-right: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ecebeb;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.08);
+}
+
+.message-form {
+  margin-top: 0;
+  display: flex;
+}
+
+.input {
+  height: 40px;
+  padding: 0 12px;
+  flex-grow: 1;
+  border: 1px solid #ecebeb;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #2ca4d7;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.08);
+}
+
+.button {
+  height: 40px;
+  background-color: #2ca4d7;
+  color: #ffffff;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.button:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+
+.button:not(:disabled):hover {
+  background-color: #207aa0;
 }

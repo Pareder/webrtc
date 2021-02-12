@@ -2,7 +2,6 @@ const express = require('express')
 const path = require('path')
 const { createServer } = require('http')
 const socket = require('socket.io')
-const turn = require('./turn')
 
 const staticFileMiddleware = express.static(path.join(__dirname + '/build'), {
 	maxAge: 604800000,
@@ -22,13 +21,26 @@ const server = createServer(app).listen(process.env.PORT || 5000, () => {
 })
 
 const io = socket(server, { path: '/ws' })
+const users = {}
 io.on('connection', socket => {
-	socket.on('message', data => {
-		socket.broadcast.emit('message', data)
+	socket.on('join', data => {
+		users[socket.id] = data
+		socket.join('audio')
+		socket.emit('initialUsers', users)
+		socket.to('audio').emit('users', users)
 	})
+
+	socket.on('message', data => {
+		io.to(data.to).emit('message', data)
+	})
+
 	socket.on('chat', data => {
-		io.emit('chat', data)
+		io.in('audio').emit('chat', data)
+	})
+
+	socket.on('disconnect', () => {
+		delete users[socket.id]
+		socket.leave('audio')
+		socket.to('audio').emit('users', users)
 	})
 })
-
-turn.start()

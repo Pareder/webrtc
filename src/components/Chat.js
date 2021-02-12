@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
+import TextInput from './TextInput'
 
 export default function Chat({ socket }) {
   const [messages, setMessages] = useState([])
   const [value, setValue] = useState('')
-  const handleChange = useCallback(event => {
-    const value = event.target.value
-    setValue(value)
-  }, [])
+
   const handleSubmit = useCallback(event => {
     event.preventDefault()
+    if(!value) {
+      return
+    }
+
     socket.emit('chat', value)
     setValue('')
   }, [socket, value])
@@ -18,13 +20,15 @@ export default function Chat({ socket }) {
   }, [socket])
 
   return (
-    <div>
-      {messages.map(message => (
-        <p key={message}>{message}</p>
-      ))}
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Type message" value={value} onChange={handleChange}/>
-        <button type="submit">Send</button>
+    <div className="chat">
+      <div className="messages">
+        {messages.map(message => (
+          <p key={message} className="message">{message}</p>
+        ))}
+      </div>
+      <form onSubmit={handleSubmit} className="message-form">
+        <TextInput name="message" placeholder="Type message" value={value} onChange={setValue}/>
+        <button type="submit" className="button">Send</button>
       </form>
     </div>
   )
