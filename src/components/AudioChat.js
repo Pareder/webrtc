@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import cx from 'classnames'
 import useSocket from '../providers/useSocket'
 import useCalls from '../providers/useCalls'
@@ -10,6 +10,9 @@ export default function AudioChat() {
   const socket = useSocket()
   const { callService, streams } = useCalls()
   const [users, setUsers] = useState({})
+  const audios = useMemo(() => Object.entries(streams).map(([id, stream]) => (
+    <Audio key={id} src={stream}/>
+  )), [streams])
 
   useEffect(() => {
     socket.on('initialUsers', users => {
@@ -18,6 +21,11 @@ export default function AudioChat() {
     })
 
     socket.on('users', setUsers)
+
+    return () => {
+      socket.off('initialUsers')
+      socket.off('users')
+    }
   }, [socket, callService])
 
   return (
@@ -30,8 +38,8 @@ export default function AudioChat() {
           </li>
         ))}
       </ul>
-      <Chat socket={socket}/>
-      {streams && <Audio src={streams}/>}
+      <Chat users={users}/>
+      {audios}
     </div>
   )
 }

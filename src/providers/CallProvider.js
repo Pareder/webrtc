@@ -1,4 +1,4 @@
-import { createContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
 import useSocket from './useSocket'
 import CallService from '../services/CallService'
@@ -12,12 +12,26 @@ CallProvider.propTypes = {
 export default function CallProvider({ children }) {
   const socket = useSocket()
   const [callService, setCallService] = useState()
-  const [streams, setStreams] = useState(null)
+  const [streams, setStreams] = useState({})
+
+  const onStream = useCallback(({ id, stream }) => {
+    setStreams(streams => {
+      const newStreams = { ...streams }
+      if (stream) {
+        newStreams[id] = stream
+      } else {
+        delete newStreams[id]
+      }
+
+      return newStreams
+    })
+  }, [])
 
   useEffect(() => {
-    setCallService(new CallService(socket, setStreams))
-    return () => callService.disconnect()
-  }, [socket])
+    setCallService(new CallService(socket, onStream))
+  }, [socket, onStream])
+
+  useEffect(() => () => callService && callService.disconnect(), [callService])
 
   const value = useMemo(() => ({
     callService,

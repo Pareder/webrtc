@@ -79,14 +79,15 @@ class CallService {
 
 	_createPeer(id) {
 		return new WebRTCPeer(
-			this.onStream,
+			stream => this.onStream({ id, stream }),
 			candidate => {
 				this._sendData({
 					to: id,
 					candidate,
 					type: 'ICE_CANDIDATE',
 				})
-			}
+			},
+			() => delete this.peers[id]
 		)
 	}
 }

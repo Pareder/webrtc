@@ -1,9 +1,10 @@
 import 'webrtc-adapter'
 
 class WebRTCPeer {
-	constructor(onTrack, onIceCandidate) {
+	constructor(onTrack, onIceCandidate, onClose) {
 		this.onTrack = onTrack
 		this.onIceCandidate = onIceCandidate
+		this.onClose = onClose
 
 		this.peerConnection = new RTCPeerConnection({
 			iceServers: process.env.REACT_APP_WEBRTC_ICE_SERVERS ? JSON.parse(process.env.REACT_APP_WEBRTC_ICE_SERVERS) : [],
@@ -79,12 +80,24 @@ class WebRTCPeer {
 		}
 	}
 
+	close() {
+		this.onTrack(null)
+		this.onClose()
+		this.onTrack = null
+		this.onIceCandidate = null
+		this.onClose = null
+		this.peerConnection.close()
+		this.peerConnection = null
+		this._pendingIceCandidates = []
+	}
+
 	_setEventHandlers() {
 		this.peerConnection.ontrack = event => {
 			if (event.streams && this.onTrack) {
 				this.onTrack(event.streams[0])
 			}
 		}
+
 		this.peerConnection.onicecandidate = event => {
 			/**
 			 * Last candidate is always null, that indicates that ICE gathering has finished
@@ -95,6 +108,13 @@ class WebRTCPeer {
 					sdpMid: event.candidate.sdpMid,
 					candidate: event.candidate.candidate,
 				})
+			}
+		}
+
+		this.peerConnection.onconnectionstatechange = () => {
+			// Indicates whether peer connection was closed due to different issues
+			if (['closed', 'disconnected', 'failed'].includes(this.peerConnection.connectionState) && this.onClose) {
+				this.close()
 			}
 		}
 	}
