@@ -34,10 +34,6 @@ io.on('connection', socket => {
 		io.to(data.to).emit('message', data)
 	})
 
-	socket.on('chat', data => {
-		io.in('audio').emit('chat', data)
-	})
-
 	socket.on('disconnect', () => {
 		delete users[socket.id]
 		socket.leave('audio')

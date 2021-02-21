@@ -10,9 +10,13 @@ export default function AudioChat() {
   const socket = useSocket()
   const { callService, streams } = useCalls()
   const [users, setUsers] = useState({})
-  const audios = useMemo(() => Object.entries(streams).map(([id, stream]) => (
-    <Audio key={id} src={stream}/>
-  )), [streams])
+  const userItems = useMemo(() => Object.entries(users).map(([id, { login }]) => (
+    <li key={id} className={cx('user', id === socket.id && 'current')}>
+      <img src={user} alt="user" className="user-icon"/>
+      {login}
+      {streams[id] && <Audio src={streams[id]}/>}
+    </li>
+  )), [users, socket.id, streams])
 
   useEffect(() => {
     socket.on('initialUsers', users => {
@@ -31,15 +35,9 @@ export default function AudioChat() {
   return (
     <div className="audio-chat">
       <ul className="users-list">
-        {Object.entries(users).map(([id, { login }]) => (
-          <li key={id} className={cx('user', id === socket.id && 'current')}>
-            <img src={user} alt="user" className="user-icon"/>
-            {login}
-          </li>
-        ))}
+        {userItems}
       </ul>
       <Chat users={users}/>
-      {audios}
     </div>
   )
 }

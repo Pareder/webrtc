@@ -46,9 +46,15 @@ html {
 .user {
   width: 100%;
   padding: 10px;
+  display: flex;
+  align-items: center;
   overflow: hidden;
   text-overflow: ellipsis;
   color: #d78d2c;
+}
+
+.user:nth-of-type(2n) {
+  background-color: #ecebeb;
 }
 
 .current {
@@ -147,4 +153,14 @@ html {
 
 .button:not(:disabled):hover {
   background-color: #207aa0;
+}
+
+.audio-btn {
+  width: 18px;
+  margin-left: auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
 }

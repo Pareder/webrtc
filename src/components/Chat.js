@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 import useSocket from '../providers/useSocket'
+import useCalls from '../providers/useCalls'
 import TextInput from './TextInput'
 
 Chat.propTypes = {
@@ -9,8 +10,8 @@ Chat.propTypes = {
 }
 
 export default function Chat({ users }) {
+  const { callService, messages } = useCalls()
   const socket = useSocket()
-  const [messages, setMessages] = useState([])
   const [value, setValue] = useState('')
 
   const chatMessages = useMemo(() => messages.map(({ message, date, from }) => (
@@ -21,7 +22,7 @@ export default function Chat({ users }) {
       </div>
       {message}
     </div>
-  )), [messages])
+  )), [messages, socket.id, users])
 
   const handleSubmit = useCallback(event => {
     event.preventDefault()
@@ -29,19 +30,9 @@ export default function Chat({ users }) {
       return
     }
 
-    socket.emit('chat', {
-      message: value,
-      date: new Date().toISOString(),
-      from: socket.id,
-    })
+    callService.sendMessage(value)
     setValue('')
-  }, [socket, value])
-
-  useEffect(() => {
-    socket.on('chat', message => setMessages(messages => [message, ...messages]))
-
-    return () => socket.off('chat')
-  }, [])
+  }, [callService, value])
 
   return (
     <div className="chat">

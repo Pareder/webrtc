@@ -1,8 +1,9 @@
 import 'webrtc-adapter'
 
 class WebRTCPeer {
-	constructor(onTrack, onIceCandidate, onClose) {
+	constructor(onTrack, onMessage, onIceCandidate, onClose) {
 		this.onTrack = onTrack
+		this.onMessage = onMessage
 		this.onIceCandidate = onIceCandidate
 		this.onClose = onClose
 
@@ -10,6 +11,7 @@ class WebRTCPeer {
 			iceServers: process.env.REACT_APP_WEBRTC_ICE_SERVERS ? JSON.parse(process.env.REACT_APP_WEBRTC_ICE_SERVERS) : [],
 		})
 		this._pendingIceCandidates = []
+		this._dataChannel = null
 
 		this._setEventHandlers()
 	}
@@ -26,9 +28,10 @@ class WebRTCPeer {
 					console.warn(err)
 				}
 			}
-		} else {
-			this.peerConnection.createDataChannel('call')
 		}
+
+		this._dataChannel = this.peerConnection.createDataChannel('call')
+		this._setMessageEvent()
 
 		const description = await this.peerConnection.createOffer()
 		await this.peerConnection.setLocalDescription(description)
@@ -91,11 +94,22 @@ class WebRTCPeer {
 		this._pendingIceCandidates = []
 	}
 
+	sendMessage(data) {
+		if(this._dataChannel) {
+			this._dataChannel.send(JSON.stringify(data))
+		}
+	}
+
 	_setEventHandlers() {
 		this.peerConnection.ontrack = event => {
 			if (event.streams && this.onTrack) {
 				this.onTrack(event.streams[0])
 			}
+		}
+
+		this.peerConnection.ondatachannel = event => {
+			this._dataChannel = event.channel
+			this._setMessageEvent()
 		}
 
 		this.peerConnection.onicecandidate = event => {
@@ -115,6 +129,14 @@ class WebRTCPeer {
 			// Indicates whether peer connection was closed due to different issues
 			if (['closed', 'disconnected', 'failed'].includes(this.peerConnection.connectionState) && this.onClose) {
 				this.close()
+			}
+		}
+	}
+
+	_setMessageEvent() {
+		this._dataChannel.onmessage = event => {
+			if (event.data) {
+				this.onMessage(JSON.parse(event.data))
 			}
 		}
 	}

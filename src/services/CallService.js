@@ -1,9 +1,10 @@
 import WebRTCPeer from '../common/WebRTCPeer'
 
 class CallService {
-	constructor(socket, onStream) {
+	constructor(socket, onStream, onMessage) {
 		this.socket = socket
 		this.onStream = onStream
+		this.onMessage = onMessage
 
 		this.socket.on('message', this._onNotification.bind(this))
 
@@ -35,6 +36,19 @@ class CallService {
 
 	disconnect() {
 		this.socket.off('message')
+	}
+
+	sendMessage(message) {
+		const data = {
+			message,
+			date: new Date().toISOString(),
+			from: this.socket.id,
+		}
+
+		this.onMessage(data)
+		for (const peer of Object.values(this.peers)) {
+			peer.sendMessage(data)
+		}
 	}
 
 	async _grabAudio() {
@@ -80,6 +94,7 @@ class CallService {
 	_createPeer(id) {
 		return new WebRTCPeer(
 			stream => this.onStream({ id, stream }),
+			this.onMessage,
 			candidate => {
 				this._sendData({
 					to: id,
