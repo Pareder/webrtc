@@ -1,8 +1,10 @@
 import 'webrtc-adapter'
 
 class WebRTCPeer {
-	constructor(onTrack, onMessage, onIceCandidate, onClose) {
-		this.onTrack = onTrack
+	constructor(id, onNegotiation, onStream, onMessage, onIceCandidate, onClose) {
+		this.id = id
+		this.onNegotiation = onNegotiation
+		this.onStream = onStream
 		this.onMessage = onMessage
 		this.onIceCandidate = onIceCandidate
 		this.onClose = onClose
@@ -16,7 +18,15 @@ class WebRTCPeer {
 		this._setEventHandlers()
 	}
 
-	async createOffer(stream) {
+	createOffer(stream) {
+		// It is fired when a change has occurred which requires session negotiation (adding stream, data channel, etc.)
+		this.peerConnection.onnegotiationneeded = async () => {
+			const description = await this._createAndSetOffer()
+			if (this.onNegotiation) {
+				this.onNegotiation(description)
+			}
+		}
+
 		/**
 		 * Cannot create offer without media tracks or data channel
 		 */
@@ -30,13 +40,7 @@ class WebRTCPeer {
 			}
 		}
 
-		this._dataChannel = this.peerConnection.createDataChannel('call')
-		this._setMessageEvent()
-
-		const description = await this.peerConnection.createOffer()
-		await this.peerConnection.setLocalDescription(description)
-
-		return description.toJSON ? description.toJSON() : description
+		this._setDataChannel(this.peerConnection.createDataChannel(this.id))
 	}
 
 	async createAnswer(remoteDescription, stream) {
@@ -84,13 +88,16 @@ class WebRTCPeer {
 	}
 
 	close() {
-		this.onTrack(null)
+		this.onStream(null) // null identifies removing the old stream
 		this.onClose()
-		this.onTrack = null
+		this.ononNegotiation = null
+		this.onStream = null
 		this.onIceCandidate = null
 		this.onClose = null
 		this.peerConnection.close()
+		this._dataChannel.close()
 		this.peerConnection = null
+		this._dataChannel = null
 		this._pendingIceCandidates = []
 	}
 
@@ -100,16 +107,22 @@ class WebRTCPeer {
 		}
 	}
 
+	async _createAndSetOffer() {
+		const description = await this.peerConnection.createOffer()
+		await this.peerConnection.setLocalDescription(description)
+
+		return description.toJSON ? description.toJSON() : description
+	}
+
 	_setEventHandlers() {
 		this.peerConnection.ontrack = event => {
-			if (event.streams && this.onTrack) {
-				this.onTrack(event.streams[0])
+			if (event.streams && this.onStream) {
+				this.onStream(event.streams[0])
 			}
 		}
 
 		this.peerConnection.ondatachannel = event => {
-			this._dataChannel = event.channel
-			this._setMessageEvent()
+			this._setDataChannel(event.channel)
 		}
 
 		this.peerConnection.onicecandidate = event => {
@@ -127,13 +140,14 @@ class WebRTCPeer {
 
 		this.peerConnection.onconnectionstatechange = () => {
 			// Indicates whether peer connection was closed due to different issues
-			if (['closed', 'disconnected', 'failed'].includes(this.peerConnection.connectionState) && this.onClose) {
+			if (['closed', 'disconnected', 'failed'].includes(this.peerConnection.connectionState)) {
 				this.close()
 			}
 		}
 	}
 
-	_setMessageEvent() {
+	_setDataChannel(channel) {
+		this._dataChannel = channel
 		this._dataChannel.onmessage = event => {
 			if (event.data) {
 				this.onMessage(JSON.parse(event.data))

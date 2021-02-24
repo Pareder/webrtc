@@ -19,11 +19,7 @@ class CallService {
 			}
 
 			this.peers[id] = this._createPeer(id)
-			this._sendData({
-				to: id,
-				description: await this.peers[id].createOffer(ownStream),
-				type: 'OFFER',
-			})
+			this.peers[id].createOffer(ownStream)
 		}
 	}
 
@@ -92,18 +88,24 @@ class CallService {
 	}
 
 	_createPeer(id) {
-		return new WebRTCPeer(
-			stream => this.onStream({ id, stream }),
-			this.onMessage,
-			candidate => {
-				this._sendData({
-					to: id,
-					candidate,
-					type: 'ICE_CANDIDATE',
-				})
-			},
-			() => delete this.peers[id]
-		)
+		const onNegotiation = async description => {
+			this._sendData({
+				description,
+				to: id,
+				type: 'OFFER',
+			})
+		}
+		const onStream = stream => this.onStream({ id, stream })
+		const onIceCandidate = candidate => {
+			this._sendData({
+				to: id,
+				candidate,
+				type: 'ICE_CANDIDATE',
+			})
+		}
+		const onClose = () => delete this.peers[id]
+
+		return new WebRTCPeer(this.socket.id, onNegotiation, onStream, this.onMessage, onIceCandidate, onClose)
 	}
 }
 
