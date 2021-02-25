@@ -5,6 +5,22 @@ What WebRTC does is to allow access to devices – you can use a microphone, a c
 
 > WebRTC enables for audio and video communication to work inside web pages.
 
+### Приложения, использующие WebRTC
+
+**Google Meet**
+
+Google Meet — сервис мгновенного обмена сообщениями, а также проведения видео- и аудиозвонков, выпущенный в 2017 году компанией Google. В браузерах, основанных на Chromium (Google Chrome и др.) используется много скрытых возможностей WebRTC, которые не описаны в документации и периодически появляются первыми в его решениях для Meet (как и в его предшественнике Hangouts). Так было с захватом экрана, размытием фона, поддержкой аппаратного кодирования на некоторых платформах.
+
+**Jitsi Meet**
+
+Jitsi Meet — приложение с открытым исходным кодом, выпущенное компанией 8x8. Технология Jitsi основана на архитектуре Simulcast, что означает нестабильную работу на слабых каналах связи и высокие требования к скорости подключения на стороне сервера. Позволяет проводить веб-конференции только в браузере и не имеет полноценных клиентских приложений для совместной работы, поддержаны конференции с количеством участников не более 75 (до 35 с высоким качеством связи). Для полноценного использования Jitsi в корпоративной среде необходима самостоятельная разработка и установка дополнительного ПО.
+
+**BigBlueButton**
+
+BigBlueButton – это свободное программное обеспечение для видеоконференцсвязи. Особый акцент разработчики делают на дистанционном образовании (присутствуют такие функции как интерактивная доска, показ контента, поддержка опросов и т. п.). Поддерживает веб-конференции до 100 участников.
+
+### Установка соединения
+
 Установить соединение p2p – довольно трудная задача, так как компьютеры не всегда обладают публичными IP адресами, то есть адресами в интернете. Из-за небольшого количества IPv4 адресов (и для целей безопасности) был разработан механизм NAT, который позволяет создавать приватные сети, например, для домашнего использования. Многие домашние роутеры сейчас поддерживают NAT и благодаря этому все домашние устройства имеют выход в интернет, хотя провайдеры интернета обычно предоставляют один IP адрес. Публичные IP адреса - уникальны в интернете, а приватные нет. Поэтому соединиться p2p - трудно.
 Для того, чтобы понять это лучше, рассмотрим три ситуации: оба узла находятся в одной сети (Рисунок 1), оба узла находятся в разных сетях (один в приватной, другой в публичной) (Рисунок 2) и оба узла находятся в разных приватных сетях с одинаковыми IP адресами (Рисунок 3).
 
@@ -218,6 +234,7 @@ Src IP | Src PORT | Dest IP | Dest PORT
 Src IP | Src PORT | Dest IP | Dest PORT
 ---|---|---|---
 12.62.100.200 | 6000 | 192.168.0.200 | 35777
+
 Таблица 11: Роутер подменил адрес приемника
 
 Пакет успешно приходит к узлу p1 и, посмотрев на содержимое пакета, узел узнает о своем внешнем IP адресе, то есть об адресе роутера во внешней сети. Также он знает и порт, который роутер пропускает через NAT.
@@ -234,13 +251,105 @@ TURN сервер – это улучшенный STUN сервер. Отсюд�
 
 Таким образом TURN сервер нужен в том случае, когда оба собеседника находятся за симметричным NAT (каждый за своим).
 
-### WebRTC JavaScript API
-WebRTC is a complex topic where many technologies are involved. However, establishing connections, communication and transmitting data are implemented through a set of JS APIs. The primary APIs include:
+### Кодеки в WebRTC
 
-- **RTCPeerConnection** –  creates and navigates peer-to-peer connections;
-- **RTCSessionDescription** – describes one end of a connection (or a potential connection) and how it’s configured;
-- **navigator.getUserMedia** – captures audio and video.
+Кодеки WebRTC можно разделить на обязательные (браузеры, реализующие данную технологию должны их поддерживать) и дополнительные (не включённые в стандарт, но добавленные некоторыми браузерами).
 
-### Why Node.js?
+#### Аудиокодеки
 
-To make a remote connection between two or more devices you need a server. In this case, you need a server that handles real-time communication. You know that Node.js is built for real-time scalable applications. To develop two-way connection apps with free data exchange, you would probably use WebSockets that allows opening a communication session between a client and a server. Requests from the client are processed as a loop, more precisely – the event loop, which makes Node.js a good option because it takes a “non-blocking” approach to serve requests and thus, achieves low latency and high throughput along the way.
+Для сжатия аудиотрафика в WebRTC используются обязательные кодеки (Opus и G.711) и дополнительные (G.722, iLBC, iSAC).
+
+**Opus** — это аудиокодек с низкой задержкой кодирования (от 2.5 мс до 60 мс), поддержкой переменного битрейта и высоким уровнем сжатия, что идеально подходит для передачи потокового аудиосигнала в сетях с переменной пропускной способностью. Является основным аудиокодеком для WebRTC. Opus — гибридное решение, сочетающее в себе лучшие характеристики кодеков SILK (компрессия голоса, устранение искажений человеческой речи) и CELT (кодирование аудиоданных). Кодек находится в свободном доступе, разработчикам, которые его используют, не нужно платить отчисления правообладателям. По сравнению с другими аудиокодеками, Opus, несомненно, выигрывает по множеству показателей. По ряду параметров он превосходит довольно популярные кодеки с низким битрейтом, такие, как MP3, Vorbis, AAC LC. Opus восстанавливает наиболее приближенную к оригиналу “картину” звука, чем AMR-WB и Speex.
+
+**G.711** — устаревший голосовой кодек с высоким битрейтом (64 kbps), который чаще всего применяется в системах традиционной телефонии. Основным достоинством является минимальная вычислительная нагрузка из-за использования лёгких алгоритмов сжатия. Кодек отличается низким уровнем компрессии голосовых сигналов и не вносит дополнительной задержки звука во время общения между пользователями.
+
+G.711 поддерживается большим количеством устройств. Системы, в которых используется этот кодек, более легкие в применении, чем те, которые основаны на других аудиокодеках (G.723, G.726, G.728 и т.д.). По качеству G.711 получил оценку 4.2 в тестировании MOS (оценка в пределах 4-5 является самой высокой и означает хорошее качество, аналогичное качеству передачи голосового трафика в ISDN и даже выше).
+
+**G.722** — является стандартом ITU-T, принят в 1988 году, в настоящее время является бесплатным. Может работать со скоростью 48, 56 и 64 кбит/с, обеспечивая качество звука на уровне G.711. И аналогично G.711 является устаревшим. Поддерживается в Chrome, Safari и Firefox.
+
+**iLBC** (internet Low Bitrate Codec) — узкополосный речевой кодек с открытым исходным кодом. Доступен в Chrome и Safari. Из-за высокого сжатия потока при использовании данного кодека возрастает нагрузка на процессор.
+
+**iSAC** (internet Speech Audio Codec) — широкополосный речевой аудиокодек, ранее проприетарный, который в настоящее время является частью проекта WebRTC, тем не менее не обязателен для использования. Поддерживается в Chrome и Safari. В реализации для WebRTC используется адаптивный битрейт от 10 до 52 кбит/с с частотой дискретизации 32 kHz.
+
+#### Видеокодеки
+
+Вопросы выбора видеокодека для WebRTC заняли у разработчиков несколько лет, в итоге в стандарт вошли VP8 и H.264. Также существуют реализации необязательных видеокодеков (H.265, VP9, AV1).
+
+**VP8** — свободный видеокодек с открытой лицензией, отличается высокой скоростью декодирования видеопотока и повышенной устойчивостью к потере кадров. Кодек универсален, его легко внедрить в аппаратные платформы, поэтому очень часто разработчики систем видеоконференцсвязи используют его в своих продуктах. Совместим с браузерами Chrome, Edge, Firefox и Safari (12.1+).
+
+Платный видеокодек **H.264** стал известен намного раньше своего собрата. Это кодек с высокой степенью сжатия видеопотока при сохранении высокого качества видео. Широкая распространенность этого кодека среди аппаратных систем видеоконференцсвязи предполагает его использование в стандарте WebRTC. Совместим с браузерами Chrome (52+), Edge, Firefox (в версиях 68+ для Android поддержка была прекращена) и Safari.
+
+**VP9** — открытый и бесплатный стандарт сжатия видео, разработанный в 2012 году компанией Google. Является развитием идей, заложенных в VP8 и в последующем был расширен в рамках AV1. Совместим с браузерами Chrome (48+) и Firefox.
+
+**H.265** — платный видеокодек, являющийся преемником H.264, обеспечивающий такое же визуальное качество при вдвое меньшем битрейте. Это достигается с помощью более эффективных алгоритмов сжатия. В настоящее время этот кодек конкурирует с бесплатным AV1.
+
+**AV1** — открытый кодек для сжатия видео, разработанный специально для передачи видео по сети Интернет. Поддерживается в Chrome (70+) и Firefox (67+).
+
+
+### WebRTC Topologies
+
+The peer-to-peer (mesh) topology is the only connection type that is covered in the WebRTC specification. However, there are many use cases where a mesh topology is insufficient. Server based topologies can help address these drawbacks and are often used within the world of WebRTC for transferring media. The best topology for any given application depends largely on the expected use cases, as each one has its own unique set of benefits and drawbacks.
+
+**Mesh**
+
+![Peer-to-peer (Mesh)](./images/img6.png)
+
+In a peer-to-peer or mesh topology, each participant in a session directly connects to all other participants without the use of a server. This type of connection is perfect for small video conferences as it is the lowest cost and easiest to set up. However, when conferences grow, maintaining direct connections between all participants becomes unsustainable as it can become too CPU intensive. Since the connections are direct between peers, a mesh topology doesn’t lend itself well to recording.
+
+For these reasons, a mesh topology is best for simple applications that connect 2 to 3 participants, where low latency is important, and where recording isn’t required.
+
+**Selective Forwarding (SFU)**
+
+![Selective Forwarding (SFU)](./images/img7.png)
+
+In a selective forwarding topology, each participant in a session connects to a server which acts as a selective forwarding unit (SFU). Each participant uploads their encrypted video stream one time to the server. The server then forwards those streams to each of the other participants. This reduces latency and also permits things like transcoding, recording, and other server-side integrations such as SIP which would be much more difficult in a peer-to-peer connection.
+
+The topology is not without its limits. While having a single upstream connection makes it more upload-efficient than a mesh topology, having multiple downstream connections means  each client will eventually run out of resources once a certain number of participants is active in the session.
+
+For these reasons, a selective forwarding topology is best for applications that connect 4 to 10 participants, where low latency is important, or where recording is required and integrity is critical. This topology is generally considered the most balanced.
+
+**Multipoint Control (Mixing)**
+
+![Multipoint Control (Mixing)](./images/img8.png)
+
+In a multipoint control topology, each participant in a session connects to a server which acts as a multipoint control unit (MCU). The MCU receives media from each participant and decodes it, mixing the audio and video from the participants together into a single stream which is in turn encoded and sent to each participant. This requires less bandwidth usage and device CPU but it does require additional server CPU for mixing audio/video into single streams. MCU’s are also a great option for dealing with poor network conditions as it provides the lowest possible bandwidth usage for each individual participant.
+
+For these reasons, a multipoint control topology is best for large-scale applications that connect large numbers of participants, or poor network conditions, or where recording is required and integrity is critical.
+
+#### Comparison between a mesh network and a star network
+
+![Discrete graph over the CPU usage measured in percentages for the two networks](./images/img9.png)
+
+Discrete graph over the CPU usage measured in percentages for the two networks
+
+![Discrete graph over the bit rate measured in Mbit/s for the two networks](./images/img10.png)
+
+Discrete graph over the bit rate measured in Mbit/s for the two networks
+
+### WebRTC Security
+
+**Browser Protection**
+
+As we already know, WebRTC is enacted directly between browsers without the need for plugins. This makes WebRTC inherently safer, because it provides an extra level of protection against malware or other undesirable software installations that may be disguised as a plug-in. Further, because WebRTC is offered as a part of a browser, any potential security threats or vulnerabilities tend to be addressed quickly via auto-updates from the browser vendors.
+
+**Media Access**
+
+The WebRTC specification has addressed potential concerns to allowing access media resources by requiring explicit permission for the camera or microphone to be used. It is not possible for a WebRTC application to gain access to a device without consent. Furthermore, whenever a device is in use, it will be indicated in the clients UI and on their hardware.
+
+**Encryption**
+
+Encryption is mandatory part of WebRTC and is enforced on all parts of establishing and maintaining a connection.The preferred method for this is to use perfect forward secrecy (PFS) ciphers in a DTLS (Datagram Transport Layer Security) handshake to securely exchange key data. For audio and video, key data can then be used to generate AES (Advanced Encryption Standard) keys which are in turn used by SRTP (Secure Real-time Transport Protocol) to encrypt and decrypt the media.This acronym-rich stack of technologies translates to extremely secure connections that are impossible to break with current technology. Both WebRTC and ORTC mandate this particular stack, which is backwards-compatible and interoperable with VoIP systems.
+
+### adapter.js
+
+While the WebRTC specification is relatively stable, not all browsers have fully implemented all of its features. In addition, some browsers still have prefixes on some or all WebRTC APIs. While you can manually code around these issues, there is an easier way. The WebRTC organization provides on GitHub the WebRTC adapter to work around compatibility issues in different browsers' WebRTC implementations. The adapter is a JavaScript shim which lets your code to be written to the specification so that it will "just work" in all browsers with WebRTC support. There's no need to conditionally use prefixed APIs or implement other workarounds.
+
+For each version of each browser that supports WebRTC, adapter.js implements the needed polyfills, establishes the non-prefixed names of APIs, and applies any other changes needed to make the browser run code written to the WebRTC specification.
+
+For example, on Firefox versions older than 38, the adapter adds the RTCPeerConnection.urls property; Firefox doesn't natively support this property until Firefox 38, while on Chrome, the adapter adds support for the Promise based API is added if it's not present. These are just a couple of examples; there are of course other adjustments made for you by the shim.
+
+The WebRTC adapter currently supports Mozilla Firefox, Google Chrome, Apple Safari, and Microsoft Edge.
+
+### Useful links
+
+https://www.w3.org/TR/webrtc/
