@@ -6,6 +6,7 @@ class CallService {
 		this.onStream = onStream
 		this.onMessage = onMessage
 
+		this.socket.off('message')
 		this.socket.on('message', this._onNotification.bind(this))
 
 		this.peers = {}
@@ -32,6 +33,9 @@ class CallService {
 
 	disconnect() {
 		this.socket.off('message')
+		for (const peer of Object.values(this.peers)) {
+			peer.close()
+		}
 	}
 
 	sendMessage(message) {
@@ -41,9 +45,15 @@ class CallService {
 			from: this.socket.id,
 		}
 
-		this.onMessage(data)
+		this.onMessage({
+			...data,
+			login: 'You',
+		})
 		for (const peer of Object.values(this.peers)) {
-			peer.sendMessage(data)
+			peer.sendMessage({
+				...data,
+				login: this.socket.login,
+			})
 		}
 	}
 

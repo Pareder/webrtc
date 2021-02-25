@@ -1,28 +1,23 @@
 import { useCallback, useMemo, useState } from 'react'
-import PropTypes from 'prop-types'
 import cx from 'classnames'
 import useSocket from '../providers/useSocket'
-import useCalls from '../providers/useCalls'
+import useChat from '../providers/useChat'
 import TextInput from './TextInput'
 
-Chat.propTypes = {
-  users: PropTypes.object.isRequired,
-}
-
-export default function Chat({ users }) {
-  const { callService, messages } = useCalls()
+export default function Chat() {
+  const { callService, messages } = useChat()
   const socket = useSocket()
   const [value, setValue] = useState('')
 
-  const chatMessages = useMemo(() => messages.map(({ message, date, from }) => (
+  const chatMessages = useMemo(() => messages.map(({ message, date, from, login }) => (
     <div key={date} className={cx('message', from === socket.id && 'own-message')}>
       <div className="message-info">
-        {from === socket.id ? 'You' : users[from] && users[from].login}
+        {login}
         <span className="time">{new Date(date).toLocaleTimeString()}</span>
       </div>
       {message}
     </div>
-  )), [messages, socket.id, users])
+  )), [messages, socket.id])
 
   const handleSubmit = useCallback(event => {
     event.preventDefault()

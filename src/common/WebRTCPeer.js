@@ -88,16 +88,22 @@ class WebRTCPeer {
 	}
 
 	close() {
+		if (this.peerConnection) {
+			this.peerConnection.close()
+			this.peerConnection = null
+		}
+
+		if (this._dataChannel) {
+			this._dataChannel.close()
+			this._dataChannel = null
+		}
+
 		this.onStream(null) // null identifies removing the old stream
 		this.onClose()
 		this.ononNegotiation = null
 		this.onStream = null
 		this.onIceCandidate = null
 		this.onClose = null
-		this.peerConnection.close()
-		this._dataChannel.close()
-		this.peerConnection = null
-		this._dataChannel = null
 		this._pendingIceCandidates = []
 	}
 

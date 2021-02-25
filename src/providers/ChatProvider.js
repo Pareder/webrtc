@@ -3,19 +3,18 @@ import PropTypes from 'prop-types'
 import useSocket from './useSocket'
 import CallService from '../services/CallService'
 
-export const CallContext = createContext(undefined)
+export const ChatContext = createContext(undefined)
 
-CallProvider.propTypes = {
+ChatProvider.propTypes = {
   children: PropTypes.node.isRequired,
 }
 
-export default function CallProvider({ children }) {
+export default function ChatProvider({ children }) {
   const socket = useSocket()
-  const [callService, setCallService] = useState()
   const [streams, setStreams] = useState({})
+  const [users, setUsers] = useState({})
   const [messages, setMessages] = useState([])
-
-  useEffect(() => {
+  const callService = useMemo(() => {
     const onStream = ({ id, stream }) => {
       setStreams(streams => {
         const newStreams = { ...streams }
@@ -32,20 +31,35 @@ export default function CallProvider({ children }) {
       setMessages(messages => [message, ...messages])
     }
 
-    setCallService(new CallService(socket, onStream, onMessage))
+    return new CallService(socket, onStream, onMessage)
   }, [socket])
 
   useEffect(() => () => callService && callService.disconnect(), [callService])
 
+  useEffect(() => {
+    socket.on('initialUsers', users => {
+      setUsers(users)
+      callService.createOffer(users)
+    })
+
+    socket.on('users', setUsers)
+
+    return () => {
+      socket.off('initialUsers')
+      socket.off('users')
+    }
+  }, [socket, callService])
+
   const value = useMemo(() => ({
     callService,
     streams,
+    users,
     messages,
-  }), [callService, streams, messages])
+  }), [callService, users, streams, messages])
 
   return (
-    <CallContext.Provider value={value}>
+    <ChatContext.Provider value={value}>
       {children}
-    </CallContext.Provider>
+    </ChatContext.Provider>
   )
 }
