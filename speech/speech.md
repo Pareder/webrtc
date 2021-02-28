@@ -7,17 +7,35 @@ What WebRTC does is to allow access to devices – you can use a microphone, a c
 
 ### Приложения, использующие WebRTC
 
-**Google Meet**
-
+1. **WhatsApp**
+2. **Facebook Messenger**
+3. **Discord**
+4. **Google Duo**
+5. **Google Meet**.
 Google Meet — сервис мгновенного обмена сообщениями, а также проведения видео- и аудиозвонков, выпущенный в 2017 году компанией Google. В браузерах, основанных на Chromium (Google Chrome и др.) используется много скрытых возможностей WebRTC, которые не описаны в документации и периодически появляются первыми в его решениях для Meet (как и в его предшественнике Hangouts). Так было с захватом экрана, размытием фона, поддержкой аппаратного кодирования на некоторых платформах.
-
-**Jitsi Meet**
-
+6. **Jitsi Meet**.
 Jitsi Meet — приложение с открытым исходным кодом, выпущенное компанией 8x8. Технология Jitsi основана на архитектуре Simulcast, что означает нестабильную работу на слабых каналах связи и высокие требования к скорости подключения на стороне сервера. Позволяет проводить веб-конференции только в браузере и не имеет полноценных клиентских приложений для совместной работы, поддержаны конференции с количеством участников не более 75 (до 35 с высоким качеством связи). Для полноценного использования Jitsi в корпоративной среде необходима самостоятельная разработка и установка дополнительного ПО.
-
-**BigBlueButton**
-
+7. **BigBlueButton**.
 BigBlueButton – это свободное программное обеспечение для видеоконференцсвязи. Особый акцент разработчики делают на дистанционном образовании (присутствуют такие функции как интерактивная доска, показ контента, поддержка опросов и т. п.). Поддерживает веб-конференции до 100 участников.
+8. **SkyEng**
+9. **GoToMeeting**
+10. **Houseparty**
+11. **Snapchat**
+12. **Amazon Chime**
+
+### Use cases
+
+The existing use cases for WebRTC can get really diverse, so we would limit ourselves to the most promising spheres: smart home, healthcare, wearable devices, and the industrial Internet of Things.
+
+- **WEBRTC FOR SMART HOME**.
+This is one of the most lucrative areas for WebRTC—and at the same time one of the most relevant IoT trends. For example, door intercom devices or smart mailboxes that utilize WebRTC for audio/video communication with web and mobile applications. In the former case, residents of smart homes are able to communicate with visitors, making sure no case of urgency remains unnoticed. In the latter case, residents of suburban areas, spending a significant part of the day commuting or at work, can unlock their smart mailboxes remotely in order to send and receive deliveries with the help of couriers at any time of day. We can also mention smart authentication solutions for secure access that involve WebRTC and machine learning-based biometric verification technology.
+- **WEBRTC IN HEALTHCARE**.
+The telehealth service market is expected to grow to $9.3 billion by 2021, and it has become a major sector for WebRTC. Its encryption of communications makes it attractive to healthcare providers because of their concern with safeguarding the personal health data of their patients. In the US, health data is protected on a legal level by **HIPAA**, and any corresponding software product must be compliant with its standards.
+Real-time video feeds can be applied to such use cases as teleconferencing doctor-patient appointments, remote therapy sessions, group therapy teleconferences, clinical meetings, and remote observation of operating rooms. These cases have gained acceptance with many health insurance plans to reduce costs. A study conducted by Tokbox Live Video found that around 60% of people are likely to use live teleconferencing to talk to a doctor for non-emergencies. Mobile app stores already have about 500 telehealth applications that use WebRTC. Although it is not exactly an IoT case, it is undoubtedly worth mentioning.
+- **INDUSTRIAL WEBRTC**.
+Following IoT trends in manufacturing, industrial enterprises are still rather conservative in terms of technology and innovation. However, the changing business landscape dictates the need for new solutions, which are slowly but steadily introduced by the leading businesses to their core systems.
+
+As an example, we can name applications that trigger or enhance video feeds. A smart factory can use technology to monitor and direct automated processes with sensors. For example, if a thermostat reading indicates that a machine may overheat, it can trigger a video camera to monitor the machine remotely to check its physical condition in real time. Another case is remote support service that can use WebRTC-based video calls for urgent equipment troubleshooting purposes.
 
 ### Установка соединения
 
@@ -40,7 +58,7 @@ WebRTC успешно справляется с такими проблемам�
 ### Две фазы WebRTC
 Чтобы соединить два узла через протокол WebRTC необходимо провести некие предварительные действия для установления соединения. Это первая фаза – установка соединения. Вторая фаза – передача видео-данных.
 
-Сразу стоит сказать, что, хоть технология WebRTC в своей работе использует множество различных способов коммуникации (TCP и UDP) и имеет гибкое переключение между ними, эта технология не имеет протокола для передачи данных о соединении. Не удивительно, ведь подключить два узла p2p не так-то просто. Поэтому необходимо иметь некоторый дополнительный способ передачи данных, никак не связанный с WebRTC. Это может быть сокетная передача, протокол HTTP, это может быть даже протокол SMTP. Этот механизм передачи начальных данных называется сигнальным. Передавать нужно не так много информации. Все данные передаются в виде текста и делятся на два типа – SDP и Ice Candidate. Первый тип используется для установления логического соединения, а второй для физического3. Подробно обо всем этом позже, а пока лишь важно помнить, что WebRTC даст нам некую информацию, которую нужно будет передать другому узлу. Как только мы передадим всю нужную информацию, узлы смогут соединиться и больше наша помощь нужна не будет. Таким образом, сигнальный механизм, который мы должны реализовать отдельно, будет использоваться только при подключении, а при передаче видео-данных использоваться не будет.
+Сразу стоит сказать, что, хоть технология WebRTC в своей работе использует множество различных способов коммуникации (TCP и UDP) и имеет гибкое переключение между ними, эта технология не имеет протокола для передачи данных о соединении. Не удивительно, ведь подключить два узла p2p не так-то просто. Поэтому необходимо иметь некоторый дополнительный способ передачи данных, никак не связанный с WebRTC. Это может быть сокетная передача, протокол HTTP, это может быть даже протокол SMTP. Этот механизм передачи начальных данных называется сигнальным. Передавать нужно не так много информации. Все данные передаются в виде текста и делятся на два типа – SDP и Ice Candidate. Первый тип используется для установления логического соединения, а второй для физического. Подробно обо всем этом позже, а пока лишь важно помнить, что WebRTC даст нам некую информацию, которую нужно будет передать другому узлу. Как только мы передадим всю нужную информацию, узлы смогут соединиться и больше наша помощь нужна не будет. Таким образом, сигнальный механизм, который мы должны реализовать отдельно, будет использоваться только при подключении, а при передаче видео-данных использоваться не будет.
 
 Итак, рассмотрим первую фазу – фазу установки соединения. Она состоит из нескольких пунктов. Рассмотрим эту фазу сначала для узла, который инициирует соединение, а потом для ожидающего.
 
@@ -74,7 +92,7 @@ WebRTC успешно справляется с такими проблемам�
 
 #### Дескриптор сессии (SDP)
 
-У разных компьютеров всегда будут разные камеры, микрофоны, видеокарты и прочее оборудование. Существует множество параметров, которыми они обладают. Все это необходимо скоординировать для медиа передачи данных между двумя узлами сети. WebRTC делает это автоматически и создает специальный объект – дескриптор сессии SDP. Передайте этот объект другому узлу, и можно передавать медиа данные. Только связи с другим узлом пока нет5.
+У разных компьютеров всегда будут разные камеры, микрофоны, видеокарты и прочее оборудование. Существует множество параметров, которыми они обладают. Все это необходимо скоординировать для медиа передачи данных между двумя узлами сети. WebRTC делает это автоматически и создает специальный объект – дескриптор сессии SDP. Передайте этот объект другому узлу, и можно передавать медиа данные. Только связи с другим узлом пока нет.
 
 Для этого используется любой сигнальный механизм. SDP можно передать с помощью любого удобного протокола (HTTP, WebSocket, etc.). Всё очень просто – Вам дадут уже готовый SDP и его нужно переслать. А при получении на другой стороне – передать в ведомство WebRTC. Дескриптор сессии хранится в виде текста и его можно изменить в своих приложениях, но, как правило, это не нужно. Как пример, при соединении десктоп↔телефон иногда требуется принудительно выбирать нужный аудио кодек.
 
@@ -96,6 +114,16 @@ WebRTC успешно справляется с такими проблемам�
 Итак, соединение уже установлено (логическое соединение), но пока нет пути, по которому узлы сети могут передавать данные. Здесь не всё так просто, но начнем с простого. Пусть узлы находятся в одной приватной сети. Как мы уже знаем, они могут легко соединяться друг с другом по своим внутренним IP адресам (или быть может, по каким-то другим, если используется не TCP/IP).
 
 Через callback `onicecandidate` WebRTC сообщает нам Ice candidate объекты. Они тоже приходят в текстовой форме и также, как с дескрипторами сессии, их нужно просто переслать через сигнальный механизм. Если дескриптор сессии содержал информацию о наших установках на уровне камеры и микрофона, то кандидаты содержат информацию о нашем расположении в сети. Передайте их другому узлу, и тот сможет физически соединиться с нами, а так как у него уже есть и дескриптор сессии, то и логически сможет соединиться и данные «потекут». Если он не забудет отправить нам и свой объект кандидата, то есть информацию о том, где находится он сам в сети, то и мы сможем с ним соединиться. Заметим здесь еще одно отличие от классического клиент-серверного взаимодействия. Общение с HTTP сервером происходит по схеме запрос-ответ, клиент отправляет данные на сервер, тот обрабатывает их и шлет по адресу, указанному в пакете запроса. В WebRTC необходимо знать два адреса и соединять их с двух сторон.
+
+These candidate types are listed in order of priority; the higher in the list they are, the more efficient they are:
+1. **host**.
+The candidate is a host candidate, whose IP address as specified in the RTCIceCandidate.ip property is in fact the true address of the remote peer.
+2. **srflx**.
+The candidate is a server reflexive candidate; the ip indicates an intermediary address assigned by the STUN server to represent the candidate's peer anonymously.
+3. **prflx**.
+The candidate is a peer reflexive candidate; the ip is an intermediary address assigned by the STUN server to represent the candidate's peer anonymously.
+4. **relay**.
+The candidate is a relay candidate, obtained from a TURN server. The relay candidate's IP address is an address the TURN server uses to forward the media between the two peers.
 
 Различие от дескрипторов сессии состоит в том, что устанавливать нужно только удаленных кандидатов. Редактирование здесь запрещено и не может принести никакой пользы. В некоторых реализациях WebRTC кандидатов необходимо устанавливать только после установки дескрипторов сессии9.
 
@@ -350,6 +378,21 @@ For example, on Firefox versions older than 38, the adapter adds the RTCPeerConn
 
 The WebRTC adapter currently supports Mozilla Firefox, Google Chrome, Apple Safari, and Microsoft Edge.
 
+### Debugging
+
+1. It is possible to provide an overview of a device's network and media capabilities in a clear and readable form. Google provides a tool you can use at https://test.webrtc.org/.
+2. Chrome provides additional tools to help debug your connectivity, as well as some pretty snazzy graphs for when your connection does work. This is made possible with the Chrome browser's WebRTC Internals functionality. To use WebRTC Internals, simply open up a new tab and enter the following protocol and URL: `chrome://webrtc-internals`.
+3. The `getStats` function. Very often, it is not possible to access the WebRTC Internals page, such as when the error is encountered by a user of your application. At such times, the same event data provided by WebRTC Internals can be acquired through the `getStats` function of the RTCPeerConnection object and by logging the object's various handlers. The `getStats` function accepts a callback handler and provides it with a detailed object, listing each of the stats values present in the WebRTC Internals interface.
+    ```javascript
+    rtcPeerConnection.getStats(stats => {
+        console.log(stats)
+    });
+    ```
+4. Besides the RTCPeerConnection API and WebRTC Internals, another useful tool to decipher connectivity issues is through the use of a network packet sniffer, such as **Wireshark**. Running a Wireshark capture while attempting a WebRTC connection will log STUN protocol packets in the main Wireshark window. You can filter for these packets by entering `stun` in the filter field, followed by the `Enter` key.
+
 ### Useful links
 
-https://www.w3.org/TR/webrtc/
+[W3C Recommendation](https://www.w3.org/TR/webrtc/) \
+[Google guides](https://webrtc.org/) \
+[WebRTC on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) \
+[WebRTC hacks](https://webrtchacks.com/)
