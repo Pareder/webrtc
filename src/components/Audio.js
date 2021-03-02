@@ -1,13 +1,27 @@
-import { useEffect, useRef } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import mute from '../img/mute.svg'
+import volume from '../img/volume.svg'
 
 export default function Audio({ src }) {
-  const ref = useRef(null)
+  const audio = useRef(null)
+  const [muted, setMuted] = useState(false)
+  const toggleVolume = () => {
+    setMuted(muted => {
+      audio.current.muted = !muted
+      return !muted
+    })
+  }
 
   useEffect(() => {
-    ref.current.srcObject = src
+    audio.current.srcObject = src
   }, [src])
 
   return (
-    <audio ref={ref} controls volume="true" autoPlay style={{ display: 'none' }}/>
+    <Fragment>
+      <audio ref={audio} controls autoPlay style={{ display: 'none' }}/>
+      <button type="button" className="audio-btn" onClick={toggleVolume}>
+        <img src={muted ? mute : volume} alt="mute"/>
+      </button>
+    </Fragment>
   )
 }

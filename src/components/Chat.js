@@ -1,30 +1,42 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import cx from 'classnames'
+import useSocket from '../providers/useSocket'
+import useChat from '../providers/useChat'
+import TextInput from './TextInput'
 
-export default function Chat({ socket }) {
-  const [messages, setMessages] = useState([])
+export default function Chat() {
+  const { callService, messages } = useChat()
+  const socket = useSocket()
   const [value, setValue] = useState('')
-  const handleChange = useCallback(event => {
-    const value = event.target.value
-    setValue(value)
-  }, [])
+
+  const chatMessages = useMemo(() => messages.map(({ message, date, from, login }) => (
+    <div key={date} className={cx('message', from === socket.id && 'own-message')}>
+      <div className="message-info">
+        {login}
+        <span className="time">{new Date(date).toLocaleTimeString()}</span>
+      </div>
+      {message}
+    </div>
+  )), [messages, socket.id])
+
   const handleSubmit = useCallback(event => {
     event.preventDefault()
-    socket.emit('chat', value)
-    setValue('')
-  }, [socket, value])
+    if(!value) {
+      return
+    }
 
-  useEffect(() => {
-    socket.on('chat', message => setMessages(messages => [...messages, message]))
-  }, [socket])
+    callService.sendMessage(value)
+    setValue('')
+  }, [callService, value])
 
   return (
-    <div>
-      {messages.map(message => (
-        <p key={message}>{message}</p>
-      ))}
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Type message" value={value} onChange={handleChange}/>
-        <button type="submit">Send</button>
+    <div className="chat">
+      <div className="messages">
+        {chatMessages}
+      </div>
+      <form onSubmit={handleSubmit} className="message-form">
+        <TextInput name="message" placeholder="Type message" value={value} onChange={setValue}/>
+        <button type="submit" className="button">Send</button>
       </form>
     </div>
   )
