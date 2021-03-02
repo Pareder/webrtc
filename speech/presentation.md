@@ -2,15 +2,17 @@
 theme: gaia
 _class: lead
 paginate: true
+_paginate: false
 backgroundColor: #fff
-backgroundImage: url('https://marp.app/assets/hero-background.jpg')
+backgroundImage: url('images/bg1.png')
+_backgroundImage: url('images/bg2.png')
 style: |
   section {
     padding: 50px;
   }
 ---
 
-![bg left:40% 40%](https://d1adoz58a2hhe1.cloudfront.net/wp-content/uploads/sites/22/webrtc-logo.png)
+![bg left:40% 40%](https://devopedia.org/images/article/39/4276.1518788244.png)
 
 # **WebRTC**
 
@@ -141,36 +143,59 @@ All data is transmitted as text and is divided into two types - **SDP** and **IC
 
 ## Caller steps
 
-1. Getting a local media stream and setting it for transmission
-(`getUserMedia`, `addTrack`).
-2. Offer to start data transfer (`createOffer`).
-3. Getting a local SDP object and passing it through the signaling mechanism (`setLocalDescription`).
-4. Getting the local ICE candidate objects and passing them through the signaling mechanism (`onicecandidate`).
-5. Receiving a remote media stream (`ontrack`).
+```javascript
+const peerConnection = new RTCPeerConnection()
+
+const stream = await navigator.getUserMedia({ video: false, audio: true })
+for (const track of stream.getTracks()) {
+  peerConnection.addTrack(track, stream)
+}
+
+const description = await this.peerConnection.createOffer()
+
+await peerConnection.setLocalDescription(description)
+
+peerConnection.onicecandidate = event => { /// }
+
+peerConnection.ontrack = event => { /// }
+```
 
 ---
 
 ## Callee steps
 
-1. Getting a local media stream and setting it for transmission
-(`getUserMedia`, `addTrack`).
-2. Receiving an offer to start data transmission and creating a response (`setRemoteDescription`, `createAnswer`).
-3. Getting a local SDP object and passing it through the signaling mechanism (`setLocalDescription`).
-4. Getting the local ICE candidate objects and passing them through the signaling mechanism (`onicecandidate`).
-5. Receiving a remote media stream (`ontrack`).
+```javascript
+const peerConnection = new RTCPeerConnection()
 
+const stream = await navigator.getUserMedia({ video: false, audio: true })
+for (const track of stream.getTracks()) {
+  peerConnection.addTrack(track, stream)
+}
+
+peerConnection.setRemoteDescription(new RTCSessionDescription(remoteDescription))
+const description = await this.peerConnection.createAnswer()
+
+await peerConnection.setLocalDescription(description)
+
+peerConnection.onicecandidate = event => { /// }
+
+peerConnection.ontrack = event => { /// }
+```
 
 ---
 
 <style>
-    section.entities {
+    section.title-center {
         display: flex;
         justify-content: center;
         align-items: center;
     }
 </style>
 
-<!-- _class: entities -->
+<!--
+_class: title-center
+_backgroundImage: url('images/bg2.png')
+-->
 # Basic entities
 
 ---
@@ -332,3 +357,217 @@ new RTCPeerConnection({
   ]
 })
 ```
+
+---
+
+<!--
+_class: title-center
+_backgroundImage: url('images/bg2.png')
+-->
+# WebRTC codecs
+
+---
+
+## Audio codecs
+
+- **Opus**
+- **G.711**
+- **G.722**
+- **iLBC**
+- **iSAC**
+
+```json
+{
+  "channels": 2,
+  "clockRate": 48000,
+  "mimeType": "audio/opus",
+  "payloadType": 111,
+  "sdpFmtpLine": "minptime=10;useinbandfec=1"
+}
+```
+
+![bg right:60% 90%](https://www.wowza.com/wp-content/uploads/Opus-bitrate-quality-comparison.png)
+
+---
+
+## Video codecs
+
+- **VP8**
+- **H.264**
+- **VP9**
+- **H.265**
+- **AV1**
+
+```json
+{
+  "clockRate": 90000,
+  "mimeType": "video/VP8",
+  "payloadType": 96
+}
+```
+
+![bg right:60% 90%](https://www.guru3d.com/index.php?ct=news&action=file&id=26615)
+
+---
+
+<style>
+    section.code pre {
+        margin-top: 150px;
+    }
+</style>
+
+<!-- _class: code -->
+## Codecs priority reordering
+
+```javascript
+const senders = peerConnection.getSenders()
+for (const sender of senders) {
+  const params = sender.getParameters()
+  for (const codec of params.codecs) {
+    ///
+  }
+
+  sender.setParameters(params)
+}
+```
+
+---
+
+<!--
+_class: title-center
+_backgroundImage: url('images/bg2.png')
+-->
+# WebRTC Topologies
+
+---
+
+<!-- _class: center -->
+## Mesh
+
+![height:500px](images/img6.png)
+
+---
+
+<!-- _class: center -->
+## Selective Forwarding (SFU)
+
+![height:500px](images/img7.png)
+
+---
+
+<!-- _class: center -->
+## Multipoint Control (Mixing)
+
+![height:500px](images/img8.png)
+
+---
+
+<!-- _class: center -->
+## Comparison between topologies ([this study](https://www.kth.se/social/files/56143db5f2765422ae79942c/WebRTC.pdf))
+
+![height:500px](images/img9.png)
+
+---
+
+<!-- _class: center -->
+
+![height:500px](images/img10.png)
+
+---
+
+# WebRTC Security
+
+- **Browser Protection**
+- **Media Access**
+- **Encryption**
+
+![bg right:50% 50%](https://img.icons8.com/ios/452/security-shield-green.png)
+
+---
+
+# [adapter.js](https://www.npmjs.com/package/webrtc-adapter)
+
+```
+npm install webrtc-adapter
+```
+
+```javascript
+import adapter from 'webrtc-adapter'
+```
+
+```javascript
+adapter.browserDetails.browser
+```
+
+```javascript
+adapter.browserDetails.version
+```
+
+---
+
+<!--
+_class: title-center
+_backgroundImage: url('images/bg2.png')
+-->
+
+# Debugging
+
+---
+
+## Testing device connectivity
+
+https://test.webrtc.org/
+
+Overview of a device's network and media capabilities.
+
+---
+
+## WebRTC Internals
+
+[chrome://webrtc-internals](chrome://webrtc-internals)
+
+![width:900px](images/img11.png)
+
+---
+
+## `getStats` function
+
+```javascript
+peerConnection.getStats().then(stats => {
+  for (const report of stats) {
+    /* [
+      "RTCAudioSource_2",
+      {
+        "id": "RTCAudioSource_2",
+        "timestamp": 1614698646082.791,
+        "type": "media-source",
+        "trackIdentifier": "5a897ba2-630e-453a-b164-d9e193a9391c",
+        "kind": "audio",
+        "audioLevel": 0.6677449873348186,
+        "totalAudioEnergy": 11.904587962536198,
+      }
+    ] */
+  }
+});
+```
+
+---
+
+## Network packet sniffer (Wireshark)
+
+![width:900px](images/img12.png)
+
+---
+
+# Useful links
+
+- [W3C Recommendation](https://www.w3.org/TR/webrtc/)
+- [Google guides](https://webrtc.org/)
+- [WebRTC on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
+- [WebRTC hacks](https://webrtchacks.com/)
+- others resources with webrtc in name
+
+---
+
+<!-- _class: title-center -->
+# Thank you for attention

@@ -299,6 +299,17 @@ G.711 поддерживается большим количеством уст�
 
 **iSAC** (internet Speech Audio Codec) — широкополосный речевой аудиокодек, ранее проприетарный, который в настоящее время является частью проекта WebRTC, тем не менее не обязателен для использования. Поддерживается в Chrome и Safari. В реализации для WebRTC используется адаптивный битрейт от 10 до 52 кбит/с с частотой дискретизации 32 kHz.
 
+Example of audio codec information stored in `RTCRtpSender`:
+```json
+{
+  "channels": 2,
+  "clockRate": 48000,
+  "mimeType": "audio/opus",
+  "payloadType": 111,
+  "sdpFmtpLine": "minptime=10;useinbandfec=1"
+}
+```
+
 #### Видеокодеки
 
 Вопросы выбора видеокодека для WebRTC заняли у разработчиков несколько лет, в итоге в стандарт вошли VP8 и H.264. Также существуют реализации необязательных видеокодеков (H.265, VP9, AV1).
@@ -313,6 +324,42 @@ G.711 поддерживается большим количеством уст�
 
 **AV1** — открытый кодек для сжатия видео, разработанный специально для передачи видео по сети Интернет. Поддерживается в Chrome (70+) и Firefox (67+).
 
+Example of video codec information stored in `RTCRtpSender`:
+```json
+{
+  "clockRate": 90000,
+  "mimeType": "video/VP8",
+  "payloadType": 96
+}
+```
+
+#### Codecs priority reordering and subseting
+
+One of the most requested controls on a Peer Connection is to be able to choose the codec that is being used without having to edit SDP.
+
+Once an SDP offer/answer has been completed and a connection created, the new functionality enables applications to change the priority of codecs or even remove codecs from the list. Doing this will not cause renegotiation of SDP but rather impact what codec the browser will send. For example, if both peers listed G.711 and Opus, in that order, the browsers would start using G.711. Using the API, the application on one peer may change the priority order and put Opus first; this in turn will cause the browser of that peer to switch from G.711 to Opus.
+
+It is important to note that the browser may switch at any time among the codecs negotiated (present on SDP list of both peers), based on its own algorithms and reasons (congestion for example). According to the standard, once codecs are agreed (negotiated), peers must be ready to receive media in any of the agreed codec formats without further signaling.
+
+In order to completely avoid usage of a codec initially negotiated in SDP the application needs to actually remove it from the codec list (subseting the codec list in SDP). This is also a new functionality introduced as part of these APIs.
+
+Note that this is reordering that occurs *after* the original offer/answer negotiation, so it cannot be used as a way to introduce new codecs not present in the original offer and answer.  However, it is still quite useful to be able to select from among the mutually-negotiated codecs.
+
+The effect of the reordering only lasts until the next negotiation, so if a renegotiation occurs this process needs to be repeated to keep the new preference ordering if it is different from what was negotiated in SDP.
+
+There is now a codecs attribute in the `RTCRtpParameters` object returned from the `RTCRtpSender.getParameters()` method.  By removing codecs and/or changing the order of the codecs in the attribute’s value and then calling `RTCRtpSender.setParameters()`, the active codec will be changed to the first in the revised list.
+
+```javascript
+const senders = peerConnection.getSenders()
+for (const sender of senders) {
+  const params = sender.getParameters()
+  for (const codec of params.codecs) {
+    ///
+  }
+
+  sender.setParameters(params)
+}
+```
 
 ### WebRTC Topologies
 
@@ -326,6 +373,15 @@ In a peer-to-peer or mesh topology, each participant in a session directly conne
 
 For these reasons, a mesh topology is best for simple applications that connect 2 to 3 participants, where low latency is important, and where recording isn’t required.
 
+Pros:
+- Lowest operating cost.
+- Excellent for simple use cases.
+
+Cons:
+- CPU intensive as conference grows.
+- Recording is difficult without a central server.
+- Each participant uses more network bandwidth.
+
 **Selective Forwarding (SFU)**
 
 ![Selective Forwarding (SFU)](./images/img7.png)
@@ -336,15 +392,76 @@ The topology is not without its limits. While having a single upstream connectio
 
 For these reasons, a selective forwarding topology is best for applications that connect 4 to 10 participants, where low latency is important, or where recording is required and integrity is critical. This topology is generally considered the most balanced.
 
+Pros:
+- Reduces participant upload bandwidth needed.
+- Permits transcoding, recording and wider device support.
+
+Cons:
+- Shifts some CPU load from the user to the server.
+
 **Multipoint Control (Mixing)**
 
 ![Multipoint Control (Mixing)](./images/img8.png)
+
+Pros:
+- Allows older devices and participants with poor internet connectivity to actively participate.
+- Great for large scale applications.
+
+Cons:
+- Requires additional server CPU power for mixing audio/video into single streams.
 
 In a multipoint control topology, each participant in a session connects to a server which acts as a multipoint control unit (MCU). The MCU receives media from each participant and decodes it, mixing the audio and video from the participants together into a single stream which is in turn encoded and sent to each participant. This requires less bandwidth usage and device CPU but it does require additional server CPU for mixing audio/video into single streams. MCU’s are also a great option for dealing with poor network conditions as it provides the lowest possible bandwidth usage for each individual participant.
 
 For these reasons, a multipoint control topology is best for large-scale applications that connect large numbers of participants, or poor network conditions, or where recording is required and integrity is critical.
 
 #### Comparison between a mesh network and a star network
+
+Connected two computers (I used a laptop and a desktop computer) to form a mesh network. I
+found that https://appear.in/ has a mesh achiteture built to it. appear.in is a group chat application
+that makes use of the WebRTC API to allow a multiconference call between browsers without
+having to install anything or having to register an account. I simply insert a chat room name
+and it creates a chat room with my chosen name and connects my web browser to this room.
+Anyone who knows my room name can connect. When a user tries to connect to the chat room,
+the browser will first ask the user for permission to gain access to the webcamera and
+microphone. The user has to accept this request in order to join the chat room.
+
+As I was only interested in sending audio streams over the network, I only allowed the browser
+access to the audio source of both computers and not the video source. To simulate a
+conversation in the chat room I had a mp3 player placed next to the desktop computer and set it
+to play John F. Kennedy’s speech “We choose to go to the Moon”.
+
+I measured the CPU usage using the Windows Task Manager on the laptop before and after the
+connection was established. I also used a tool called DU Meter to measure the bit rate by
+adding together the download rate with the upload rate. To increase the number of peers, I
+simply opened new browser tabs on the desktop computer and connected these tabs to the chat
+room. And after each new connection to the room was made, I measured how that affected the
+CPU usage and the bit rate on the laptop computer.
+
+Appear.in states that their application can only handle up to 8 participants in the same room
+simultaneously before the room becomes full, so my idea was to increment the number of
+participants until I reach that cap, or until the local CPU reaches its maximum load.
+
+I could not conduct measurements on the desktop computer because my laptop was not capable
+of handling so many open tabs. Otherwise, I would have done so as well to compare how each
+computer performed. The laptop was equipped with AMD A6-3420M 1.5 GHz processor and 4
+GB of RAM.
+
+After doing measurements on appear.in, I switched to an application that used the star
+architecture. https://meet.jit.si is such an application. Jitsi Meet is a WebRTC bridge that
+receives audio from every participant in the chat room and then relays this to every user in the
+network. Jitsi Meet does not have any limitation on the number of users allowed in one chat
+room.
+
+Jitsi Meet actually has a tool that generates traffic called “Jitsi-Hammer”. What Jitsi-Hammer
+does is that it can send RTP traffic from fake users in a Jitsi Meet conference call. This
+sounded like the perfect tool for my experiment, but after attempting for days trying to make the
+program start without any success I had to leave it behind me and returned to my previous
+method again of using a secondary computer to create new participants in the voice conference
+call.
+
+I performed the same measurement on Jitsi Meet as I did with in appear.in, I used the desktop
+computer to create new connections to the group chat and I measured the CPU usage and the
+network activity on my laptop.
 
 ![Discrete graph over the CPU usage measured in percentages for the two networks](./images/img9.png)
 
@@ -384,8 +501,21 @@ The WebRTC adapter currently supports Mozilla Firefox, Google Chrome, Apple Safa
 2. Chrome provides additional tools to help debug your connectivity, as well as some pretty snazzy graphs for when your connection does work. This is made possible with the Chrome browser's WebRTC Internals functionality. To use WebRTC Internals, simply open up a new tab and enter the following protocol and URL: `chrome://webrtc-internals`.
 3. The `getStats` function. Very often, it is not possible to access the WebRTC Internals page, such as when the error is encountered by a user of your application. At such times, the same event data provided by WebRTC Internals can be acquired through the `getStats` function of the RTCPeerConnection object and by logging the object's various handlers. The `getStats` function accepts a callback handler and provides it with a detailed object, listing each of the stats values present in the WebRTC Internals interface.
     ```javascript
-    rtcPeerConnection.getStats(stats => {
-        console.log(stats)
+    peerConnection.getStats().then(stats => {
+      for (const report of stats) {
+        /* [
+          "RTCAudioSource_2",
+          {
+            "id": "RTCAudioSource_2",
+            "timestamp": 1614698646082.791,
+            "type": "media-source",
+            "trackIdentifier": "5a897ba2-630e-453a-b164-d9e193a9391c",
+            "kind": "audio",
+            "audioLevel": 0.6677449873348186,
+            "totalAudioEnergy": 11.904587962536198,
+          }
+        ] */
+      }
     });
     ```
 4. Besides the RTCPeerConnection API and WebRTC Internals, another useful tool to decipher connectivity issues is through the use of a network packet sniffer, such as **Wireshark**. Running a Wireshark capture while attempting a WebRTC connection will log STUN protocol packets in the main Wireshark window. You can filter for these packets by entering `stun` in the filter field, followed by the `Enter` key.
