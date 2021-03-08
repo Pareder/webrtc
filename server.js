@@ -16,6 +16,7 @@ const staticFileMiddleware = express.static(path.join(__dirname + '/build'), {
 
 const app = express()
 app.use(staticFileMiddleware)
+app.use('/static', express.static(path.join(__dirname + '/speech')))
 const server = createServer(app).listen(process.env.PORT || 5000, () => {
 	console.log('Express server listening on port 5000')
 })

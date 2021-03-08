@@ -495,6 +495,56 @@ For example, on Firefox versions older than 38, the adapter adds the RTCPeerConn
 
 The WebRTC adapter currently supports Mozilla Firefox, Google Chrome, Apple Safari, and Microsoft Edge.
 
+### Possible problems
+
+1. creating `offer` without `streams` or `data channel`
+    ```javascript
+    if (stream) {
+      for (const track of stream.getTracks()) {
+        peerConnection.addTrack(track, stream)
+      }
+    } else {
+      peerConnection.createDataChannel('call')
+    }
+    
+    await peerConnection.createOffer()
+    ```
+2. getting `ice candidates` before `offer`
+   ```javascript
+   if (peerConnection.remoteDescription) {
+     await peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
+   } else {
+     pendingIceCandidates.push(candidate)
+   }
+   
+   ///
+   
+   if (pendingIceCandidates.length) {
+     for (const iceCandidate of pendingIceCandidates) {
+       await peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate))
+     }
+     
+     pendingIceCandidates = []
+   }
+   ```
+3. adding new `streams` while the previous negotiation is in progress.
+
+    The availability of adding tracks is `true` at start and when the peer is connected and has remote description. Signaling state is `stable` in two cases:
+    1. Connection is new (local and remote descriptions are null).
+    2. Negotiation was completed and connection has been established.
+    
+    Signaling state is `have-remote-offer` when the remote peer created an offer, delivered it to the local peer, which has set the offer as the remote description. No other signaling states are allowed to add track because negotiation will not be triggered.
+    ```javascript
+    if (['have-remote-offer', 'stable'].includes(peerConnection.signalingState)) {
+      for (const track of stream.getTracks()) {
+        peerConnection.addTrack(track, stream)
+      }
+    } else {
+      pendingStreams.push(stream)
+    }
+    ```
+    The same with removing streams.
+
 ### Debugging
 
 1. It is possible to provide an overview of a device's network and media capabilities in a clear and readable form. Google provides a tool you can use at https://test.webrtc.org/.
