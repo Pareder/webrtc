@@ -100,7 +100,7 @@ class WebRTCPeer {
 
 		this.onStream(null) // null identifies removing the old stream
 		this.onClose()
-		this.ononNegotiation = null
+		this.onNegotiation = null
 		this.onStream = null
 		this.onIceCandidate = null
 		this.onClose = null

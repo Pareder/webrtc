@@ -83,6 +83,16 @@ Discord
 
 ---
 
+# Alternatives
+
+- [**SignalR**](https://docs.microsoft.com/en-us/aspnet/signalr/overview/getting-started/introduction-to-signalr) - library for ASP.NET that allows server code to send asynchronous notifications to client-side web applications.
+- [**XMPP**](https://xmpp.org) - open XML technology for real-time communication.
+- [**Zoom**](https://marketplace.zoom.us/docs/sdk/native-sdks/web) -  SDK that allows to integrate all Zoom Client app features.
+- [**Twilio**](https://www.twilio.com/docs/voice/client/javascript) - SDK that allows to make voice calls.
+- [**Skype**](https://docs.microsoft.com/en-us/skype-sdk/websdk/docs/skypewebsdk) - SDK that allows to integrate a wide variety of real-time collaboration models.
+
+---
+
 <style>
     section.nat p {
         text-align: center;
@@ -501,6 +511,64 @@ adapter.browserDetails.browser
 
 ```javascript
 adapter.browserDetails.version
+```
+
+---
+
+<!--
+_class: title-center
+_backgroundImage: url('images/bg2.png')
+-->
+# Possible problems
+
+---
+
+# creating `offer` without `streams` or `data channel`
+
+```javascript
+if (stream) {
+  for (const track of stream.getTracks()) {
+    peerConnection.addTrack(track, stream)
+  }
+} else {
+  peerConnection.createDataChannel('call')
+}
+
+await peerConnection.createOffer()
+```
+
+---
+
+# getting `ice candidates` before `offer`
+
+```javascript
+if (peerConnection.remoteDescription) {
+  await peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
+} else {
+  pendingIceCandidates.push(candidate)
+}
+
+///
+
+for (const iceCandidate of pendingIceCandidates) {
+  await peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate))
+}
+  
+pendingIceCandidates = []
+```
+
+---
+
+# adding new `streams` while the previous negotiation is in progress
+
+```javascript
+if (['have-remote-offer', 'stable'].includes(peerConnection.signalingState)) {
+  for (const track of stream.getTracks()) {
+    peerConnection.addTrack(track, stream)
+  }
+} else {
+  pendingStreams.push(stream)
+}
 ```
 
 ---
