@@ -224,6 +224,23 @@ _backgroundImage: url('images/bg2.png')
 
 ---
 
+Microphone
+```javascript
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+```
+
+Microphone and camera
+```javascript
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+```
+
+Screen sharing
+```javascript
+const stream = await navigator.mediaDevices.getDisplayMedia()
+```
+
+---
+
 <style>
     section.sdp p {
         text-align: center;
@@ -485,6 +502,73 @@ _backgroundImage: url('images/bg2.png')
 
 ---
 
+<!--
+_class: title-center
+_backgroundImage: url('images/bg2.png')
+-->
+
+# Data channels
+
+---
+
+```javascript
+const channel = peerConnection.createDataChannel(label, options)
+peerConnection.ondatachannel = event => {
+  const channel = event.channel
+}
+```
+
+```javascript
+channel.onmessage = event => {
+  const data = event.data
+}
+```
+
+- text chat
+- file transfer
+- gaming
+- IoT/Streaming Data
+
+---
+
+## Text chat
+
+```javascript
+const data = {
+  from: id,
+  date: Date.now(),
+  message: 'text',
+}
+channel.send(JSON.stringify(data))
+
+...
+
+channel.onmessage = event => {
+  const data = JSON.parse(data.event)
+}
+```
+
+---
+
+## [File transfer](https://levelup.gitconnected.com/send-files-over-a-data-channel-video-call-with-webrtc-step-6-d38f1ca5a351)
+
+```javascript
+const file = event.target.files[0]
+
+channel.binaryType = 'arraybuffer'
+const arrayBuffer = await file.arrayBuffer()
+channel.send(arrayBuffer)
+
+...
+
+channel.onmessage = event => {
+  const data = event.data
+  const blob = new Blob([data])
+}
+```
+
+---
+
 # WebRTC Security
 
 - **Browser Protection**
@@ -633,7 +717,7 @@ peerConnection.getStats().then(stats => {
 - [Google guides](https://webrtc.org/)
 - [WebRTC on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
 - [WebRTC hacks](https://webrtchacks.com/)
-- others resources with webrtc in name
+- other resources with webrtc in name
 
 ---
 
