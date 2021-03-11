@@ -42,7 +42,12 @@ export default function ChatProvider({ children }) {
       callService.createOffer(users)
     })
 
-    socket.on('users', setUsers)
+    socket.on('users', users => {
+      setUsers(users)
+      if (Object.keys(users).length === 1 && users.hasOwnProperty(socket.id)) {
+        callService.stop()
+      }
+    })
 
     return () => {
       socket.off('initialUsers')

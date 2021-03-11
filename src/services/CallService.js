@@ -9,33 +9,46 @@ class CallService {
 		this.socket.off('message')
 		this.socket.on('message', this._onNotification.bind(this))
 
+		this.stream = null
 		this.peers = {}
 	}
 
 	async createOffer(users) {
-		const ownStream = await this._grabAudio()
+		this.stream = await this._grabAudio()
 		for (const id of Object.keys(users)) {
 			if (this.peers[id] || id === this.socket.id) {
 				continue
 			}
 
 			this.peers[id] = this._createPeer(id)
-			this.peers[id].createOffer(ownStream)
+			this.peers[id].createOffer(this.stream)
 		}
 	}
 
 	async createAnswer(id, description) {
-		const ownStream = await this._grabAudio()
+		this.stream = await this._grabAudio()
 		this.peers[id] = this._createPeer(id)
 
-		return await this.peers[id].createAnswer(description, ownStream)
+		return await this.peers[id].createAnswer(description, this.stream)
+	}
+
+	stop() {
+		for (const peer of Object.values(this.peers)) {
+			peer.close()
+		}
+
+		if(this.stream) {
+			for (const track of this.stream.getTracks()) {
+				track.stop()
+			}
+
+			this.stream = null
+		}
 	}
 
 	disconnect() {
 		this.socket.off('message')
-		for (const peer of Object.values(this.peers)) {
-			peer.close()
-		}
+		this.stop()
 	}
 
 	sendMessage(message) {
@@ -58,6 +71,10 @@ class CallService {
 	}
 
 	async _grabAudio() {
+		if (this.stream) {
+			return this.stream
+		}
+
 		return await navigator.mediaDevices.getUserMedia({
 			audio: true,
 			video: false,
