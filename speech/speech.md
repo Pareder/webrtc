@@ -90,6 +90,21 @@ WebRTC успешно справляется с такими проблемам�
 
 В WebRTC существует довольно запутанная иерархия внутри потока. Каждый поток может состоять из нескольких медиа дорожек (MediaTrack), которые в свою очередь могут состоять из нескольких медиа каналов (MediaChannel). Да и самих медиа потоков может быть тоже несколько.
 
+Microphone
+```javascript
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+```
+
+Microphone and camera
+```javascript
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+```
+
+Screen sharing
+```javascript
+const stream = await navigator.mediaDevices.getDisplayMedia()
+```
+
 #### Дескриптор сессии (SDP)
 
 У разных компьютеров всегда будут разные камеры, микрофоны, видеокарты и прочее оборудование. Существует множество параметров, которыми они обладают. Все это необходимо скоординировать для медиа передачи данных между двумя узлами сети. WebRTC делает это автоматически и создает специальный объект – дескриптор сессии SDP. Передайте этот объект другому узлу, и можно передавать медиа данные. Только связи с другим узлом пока нет.
@@ -471,19 +486,99 @@ Discrete graph over the CPU usage measured in percentages for the two networks
 
 Discrete graph over the bit rate measured in Mbit/s for the two networks
 
+### Data channels
+
+The `RTCDataChannel` interface represents a network channel which can be used for bidirectional peer-to-peer transfers of arbitrary data. Every data channel is associated with an `RTCPeerConnection`, and each peer connection can have up to a theoretical maximum of 65,534 data channels (the actual limit may vary from browser to browser).
+
+To create a data channel and ask a remote peer to join you, call the `RTCPeerConnection`'s `createDataChannel()` method. The peer being invited to exchange data receives a `datachannel` event (which has type `RTCDataChannelEvent`) to let it know the data channel has been added to the connection.
+
+```javascript
+const channel = peerConnection.createDataChannel(label, options)
+
+peerConnection.ondatachannel = event => {
+  const channel = event.channel
+}
+```
+```javascript
+channel.onmessage = event => {
+  const data = event.data
+}
+```
+
+#### Use cases
+
+- **text chat**
+
+    You’re already using WebRTC for secure, encrypted, P2P video chat, so why not also use it for the text chat boxes that typically go along with video chat apps?
+    ```javascript
+    const data = {
+      from: id,
+      date: Date.now(),
+      message: 'text',
+    }
+    channel.send(JSON.stringify(data))
+    
+    ...
+    
+    channel.onmessage = event => {
+      const data = JSON.parse(data.event)
+    }
+    ```
+- **file transfer**
+
+    By breaking up your file into small bits, you can send it across the Data Channel and re-assemble it on the other side for the receiving user(s). This is a secure solution for transfering medical files in a telehealth application for example.
+    ```javascript
+    const file = event.target.files[0]
+    
+    channel.binaryType = 'arraybuffer'
+    const arrayBuffer = await file.arrayBuffer()
+    channel.send(arrayBuffer)
+    
+    ...
+    
+    channel.onmessage = event => {
+      const data = event.data
+      const blob = new Blob([data])
+    }
+    ```
+- **gaming**
+
+    This is often given as an example of using the Data Channel for localized data in a massive multiplayer online game. Why bog down a centralized WebSockets server with position and command data that only gamers in a certain room care about? The DataChannel could be used over an RTCPeerConnection containing only gamers in a certain local area. That channel exchanges information only of interest to those in the area, like where you are looking or aiming a weapon. Keeping that data on the DataChannel reduces load on the central gaming server and may also reduce latency between local players.
+- **IoT/Streaming Data**
+    
+    Perhaps you have some sort of streaming or real time data that you want to share on a dashboard. That data could be complementary to the video chat going on, or it might be completely independent of any use of the video/audio channels of WebRTC. The Data Channel could be a good solution for this, especially if you prefer the data is exchanged directly between peers, and not through a central server. For example, there is a variant on “cloud computing” called “fog computing“. In fog computing, imagine that you have lots of IoT devices that need to share data with each other, but that data is never sent up to a central server. Those devices make up a fog of computers with no central point, and they could be talking to each other over the WebRTC Data Channel.
+
+
+
 ### WebRTC Security
 
-**Browser Protection**
+1. **Browser Protection**
+    
+    As we already know, WebRTC is enacted directly between browsers without the need for plugins. This makes WebRTC inherently safer, because it provides an extra level of protection against malware or other undesirable software installations that may be disguised as a plug-in. Further, because WebRTC is offered as a part of a browser, any potential security threats or vulnerabilities tend to be addressed quickly via auto-updates from the browser vendors.
 
-As we already know, WebRTC is enacted directly between browsers without the need for plugins. This makes WebRTC inherently safer, because it provides an extra level of protection against malware or other undesirable software installations that may be disguised as a plug-in. Further, because WebRTC is offered as a part of a browser, any potential security threats or vulnerabilities tend to be addressed quickly via auto-updates from the browser vendors.
+2. **Media Access**
 
-**Media Access**
+    The WebRTC specification has addressed potential concerns to allowing access media resources by requiring explicit permission for the camera or microphone to be used. It is not possible for a WebRTC application to gain access to a device without consent. Furthermore, whenever a device is in use, it will be indicated in the clients UI and on their hardware.
 
-The WebRTC specification has addressed potential concerns to allowing access media resources by requiring explicit permission for the camera or microphone to be used. It is not possible for a WebRTC application to gain access to a device without consent. Furthermore, whenever a device is in use, it will be indicated in the clients UI and on their hardware.
+3. **Encryption**
 
-**Encryption**
+    Encryption is mandatory part of WebRTC and is enforced on all parts of establishing and maintaining a connection.The preferred method for this is to use perfect forward secrecy (PFS) ciphers in a DTLS (Datagram Transport Layer Security) handshake to securely exchange key data. For audio and video, key data can then be used to generate AES (Advanced Encryption Standard) keys which are in turn used by SRTP (Secure Real-time Transport Protocol) to encrypt and decrypt the media.This acronym-rich stack of technologies translates to extremely secure connections that are impossible to break with current technology. Both WebRTC and ORTC mandate this particular stack, which is backwards-compatible and interoperable with VoIP systems.
 
-Encryption is mandatory part of WebRTC and is enforced on all parts of establishing and maintaining a connection.The preferred method for this is to use perfect forward secrecy (PFS) ciphers in a DTLS (Datagram Transport Layer Security) handshake to securely exchange key data. For audio and video, key data can then be used to generate AES (Advanced Encryption Standard) keys which are in turn used by SRTP (Secure Real-time Transport Protocol) to encrypt and decrypt the media.This acronym-rich stack of technologies translates to extremely secure connections that are impossible to break with current technology. Both WebRTC and ORTC mandate this particular stack, which is backwards-compatible and interoperable with VoIP systems.
+    Encryption is a mandatory feature of WebRTC, and is enforced on all components, including signaling mechanisms. Resultantly, all media streams sent over WebRTC are securely encrypted, enacted through standardised and well-known encryption protocols. The encryption protocol used depends on the channel type; data streams are encrypted using Datagram Transport Layer Security (DTLS) and media streams are encrypted using Secure Real-time Transport Protocol (SRTP).
+
+    **DTLS: Datagram Transport Layer Security**
+    
+    WebRTC encrypts information (specifically data channels) using Datagram Transport Layer Security (DTLS). All data sent over RTCDataChannel is secured using DTLS.
+    
+    DTLS is a standardised protocol which is built into all browsers that support WebRTC, and is one protocol consistently used in web browsers, email, and VoIP platforms to encrypt information. The built-in nature also means that no prior setup is required before use. As with other encryption protocols it is designed to prevent eavesdropping and information tampering. DTLS itself is modelled upon the stream-orientated TLS, a protocol which offers full encryption with asymmetric cryptography methods, data authentication, and message authentication. TLS is the de-facto standard for web encryption, utilised for the purposes of such protocols as HTTPS. TLS is designed for the reliable transport mechanism of TCP, but VoIP apps (and games, etc.) typically utilise unreliable datagram transports such as UDP.
+    
+    As DTLS is a derivative of SSL, all data is known to be as secure as using any standard SSL based connection. In fact, WebRTC data can be secured via any standard SSL based connection on the web, allowing WebRTC to offer end-to-end encryption between peers with almost any server arrangement.
+
+    **SRTP: Secure Real-time Transport Protocol**
+    
+    Basic RTP does not have any built-in security mechanisms, and thus places no protections of the confidentiality of transmitted data. External mechanisms are instead relied on to provide encryption. In fact, the use of unencrypted RTP is explicitly forbidden by the WebRTC specification.
+    
+    WebRTC utilises SRTP for the encryption of media streams, rather than DTLS. This is because SRTP is a lighter-weight option than DTLS. The specification requires that any compliant WebRTC implementation support RTP/SAVPF (which is built on top of RTP/SAVP). However, the actual SRTP key exchange is initially performed end-to-end with DTLS-SRTP, allowing for the detection of any MiTM attacks.
 
 ### adapter.js
 
