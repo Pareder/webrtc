@@ -528,7 +528,7 @@ channel.onmessage = event => {
 
     By breaking up your file into small bits, you can send it across the Data Channel and re-assemble it on the other side for the receiving user(s). This is a secure solution for transfering medical files in a telehealth application for example.
     ```javascript
-    const file = event.target.files[0]
+    const [file] = event.target.files
     
     channel.binaryType = 'arraybuffer'
     const arrayBuffer = await file.arrayBuffer()

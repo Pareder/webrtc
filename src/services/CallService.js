@@ -1,16 +1,22 @@
 import WebRTCPeer from '../common/WebRTCPeer'
 
 class CallService {
-	constructor(socket, onStream, onMessage) {
+	constructor(socket, onStream, onMessage, createWebRTCPeer) {
 		this.socket = socket
 		this.onStream = onStream
 		this.onMessage = onMessage
+		this.createWebRTCPeer = createWebRTCPeer
 
 		this.socket.off('message')
 		this.socket.on('message', this._onNotification.bind(this))
 
 		this.stream = null
 		this.peers = {}
+	}
+
+	static create(socket, onStream, onMessage) {
+		const createWebRTCPeer = (...args) => new WebRTCPeer(...args)
+		return new CallService(socket, onStream, onMessage, createWebRTCPeer)
 	}
 
 	async createOffer(users) {
@@ -92,7 +98,7 @@ class CallService {
 					})
 					break
 				case 'ANSWER':
-					await this.peers[message.id].peerConnection.setRemoteDescription(new RTCSessionDescription(message.description))
+					await this.peers[message.id].setRemoteDescription(message.description)
 					break
 				case 'ICE_CANDIDATE':
 					if (!this.peers[message.id]) {
@@ -132,7 +138,7 @@ class CallService {
 		}
 		const onClose = () => delete this.peers[id]
 
-		return new WebRTCPeer(this.socket.id, onNegotiation, onStream, this.onMessage, onIceCandidate, onClose)
+		return this.createWebRTCPeer(this.socket.id, onNegotiation, onStream, this.onMessage, onIceCandidate, onClose)
 	}
 }
 

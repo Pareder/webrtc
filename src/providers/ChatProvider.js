@@ -31,7 +31,7 @@ export default function ChatProvider({ children }) {
       setMessages(messages => [message, ...messages])
     }
 
-    return new CallService(socket, onStream, onMessage)
+    return CallService.create(socket, onStream, onMessage)
   }, [socket])
 
   useEffect(() => () => callService && callService.disconnect(), [callService])

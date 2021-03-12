@@ -44,7 +44,7 @@ class WebRTCPeer {
 	}
 
 	async createAnswer(remoteDescription, stream) {
-		await this.peerConnection.setRemoteDescription(new RTCSessionDescription(remoteDescription))
+		await this.setRemoteDescription(remoteDescription)
 		/**
 		 * Try to add ICE candidates which were added when peer had no remote description
 		 */
@@ -85,6 +85,10 @@ class WebRTCPeer {
 		} else {
 			this._pendingIceCandidates.push(candidate)
 		}
+	}
+
+	async setRemoteDescription(remoteDescription) {
+		await this.peerConnection.setRemoteDescription(new RTCSessionDescription(remoteDescription))
 	}
 
 	close() {
