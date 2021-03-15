@@ -24,6 +24,12 @@ function getCallService({
 }
 
 describe('CallService', () => {
+  describe('create static method', () => {
+    it('Should return an instance of CallService', () => {
+      expect(CallService.create(socketMock)).toBeInstanceOf(CallService)
+    })
+  })
+
   describe('createOffer method', () => {
     it('Should call getUserMedia function', async () => {
       const callService = getCallService()

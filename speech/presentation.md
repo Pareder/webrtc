@@ -22,7 +22,11 @@ Web Real-Time Communication
 
 # What is it?
 
-It allows communicating in real-time directly between browsers (P2P) without any third-party plugins.
+```javascript
+new RTCPeerConnection(configuration)
+```
+
+Real-time communication directly between browsers (P2P).
 
 It is used for:
 - audio/video communication;
@@ -713,11 +717,11 @@ peerConnection.getStats().then(stats => {
 
 # Useful links
 
-- [W3C Recommendation](https://www.w3.org/TR/webrtc/)
+- [W3C Specification](https://www.w3.org/TR/webrtc/)
 - [Google guides](https://webrtc.org/)
 - [WebRTC on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
 - [WebRTC hacks](https://webrtchacks.com/)
-- other resources with webrtc in name
+- other resources with `webrtc` in name
 
 ---
 
