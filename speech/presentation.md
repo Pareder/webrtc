@@ -721,6 +721,7 @@ peerConnection.getStats().then(stats => {
 - [Google guides](https://webrtc.org/)
 - [WebRTC on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
 - [WebRTC hacks](https://webrtchacks.com/)
+- [List of libraries](https://stackoverflow.com/questions/24857637/current-state-of-javascript-webrtc-libraries)
 - other resources with `webrtc` in name
 
 ---

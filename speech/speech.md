@@ -39,6 +39,9 @@ As an example, we can name applications that trigger or enhance video feeds. A s
 
 ### Установка соединения
 
+![Call Flow Browser to Browser](https://www.w3.org/TR/webrtc/images/ladder-2party-simple.svg)
+This shows an example of one possible call flow between two browsers. This does not show the procedure to get access to local media or every callback that gets fired but instead tries to reduce it down to only show the key events and messages.
+
 Установить соединение p2p – довольно трудная задача, так как компьютеры не всегда обладают публичными IP адресами, то есть адресами в интернете. Из-за небольшого количества IPv4 адресов (и для целей безопасности) был разработан механизм NAT, который позволяет создавать приватные сети, например, для домашнего использования. Многие домашние роутеры сейчас поддерживают NAT и благодаря этому все домашние устройства имеют выход в интернет, хотя провайдеры интернета обычно предоставляют один IP адрес. Публичные IP адреса - уникальны в интернете, а приватные нет. Поэтому соединиться p2p - трудно.
 Для того, чтобы понять это лучше, рассмотрим три ситуации: оба узла находятся в одной сети (Рисунок 1), оба узла находятся в разных сетях (один в приватной, другой в публичной) (Рисунок 2) и оба узла находятся в разных приватных сетях с одинаковыми IP адресами (Рисунок 3).
 
@@ -103,6 +106,14 @@ const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: t
 Screen sharing
 ```javascript
 const stream = await navigator.mediaDevices.getDisplayMedia()
+```
+
+It is possible to replace the `RTCRtpSender`'s current `track` with another track provided (or with a `null` track), without renegotiation with the help of `replaceTrack` method.
+
+```javascript
+const anotherTrack = ...
+const [sender] = peerConnection.getSenders()
+sender.replaceTrack(anotherTrack)
 ```
 
 #### Дескриптор сессии (SDP)
@@ -492,6 +503,8 @@ The `RTCDataChannel` interface represents a network channel which can be used fo
 
 To create a data channel and ask a remote peer to join you, call the `RTCPeerConnection`'s `createDataChannel()` method. The peer being invited to exchange data receives a `datachannel` event (which has type `RTCDataChannelEvent`) to let it know the data channel has been added to the connection.
 
+If channel is the first `RTCDataChannel` created on connection, it will update the negotiation-needed flag for connection. All other channels created on settled connection will not trigger negotiation.
+
 ```javascript
 const channel = peerConnection.createDataChannel(label, options)
 
@@ -663,6 +676,7 @@ The WebRTC adapter currently supports Mozilla Firefox, Google Chrome, Apple Safa
       }
     });
     ```
+   All possible types of reports can be found [here](https://www.w3.org/TR/webrtc/#mandatory-to-implement-stats).
 4. Besides the RTCPeerConnection API and WebRTC Internals, another useful tool to decipher connectivity issues is through the use of a network packet sniffer, such as **Wireshark**. Running a Wireshark capture while attempting a WebRTC connection will log STUN protocol packets in the main Wireshark window. You can filter for these packets by entering `stun` in the filter field, followed by the `Enter` key.
 
 ### Useful links
@@ -670,4 +684,5 @@ The WebRTC adapter currently supports Mozilla Firefox, Google Chrome, Apple Safa
 [W3C Recommendation](https://www.w3.org/TR/webrtc/) \
 [Google guides](https://webrtc.org/) \
 [WebRTC on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) \
-[WebRTC hacks](https://webrtchacks.com/)
+[WebRTC hacks](https://webrtchacks.com/) \
+[List of libraries](https://stackoverflow.com/questions/24857637/current-state-of-javascript-webrtc-libraries)
