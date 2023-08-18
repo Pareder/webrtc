@@ -1,4 +1,4 @@
-# [WebRTC Fundamentals](https://webrtc-fundamentals.herokuapp.com/)
+# [WebRTC Fundamentals](https://webrtc-fundamentals.onrender.com)
 
 **Web Real-Time Communications** – WebRTC in short – is an HTML5 specification that allows you to communicate in real-time directly between browsers without any third-party plugins. WebRTC can be used for multiple tasks (even file sharing) but real-time peer-to-peer audio and video communication is obviously the primary feature.
 
